@@ -27,9 +27,18 @@
   .slot .info b { color:#b0b0b0; display:block; margin-bottom:4px; }
   .settings { display:flex; flex-direction:column; gap:14px; background:#2a2a2a; border:1px solid #3a3a3a; border-radius:6px; padding:20px 24px; min-width:280px; max-width:90vw; margin-bottom:16px; }
   .row { display:flex; justify-content:space-between; align-items:center; gap:16px; color:#c0c0c0; font-size:15px; }
-  .row input[type=text] { background:#1e1e1e; color:#e0e0e0; border:1px solid #3a3a3a; padding:10px 12px; border-radius:4px; font-family:'Courier New',monospace; width:180px; text-align:center; letter-spacing:4px; font-size:18px; }
+  .row input[type=text] { background:#1e1e1e; color:#e0e0e0; border:1px solid #3a3a3a; padding:10px 12px; border-radius:4px; font-family:'Courier New',monospace; width:180px; text-align:center; letter-spacing:4px; font-size:18px; text-transform:uppercase; }
   #gameScreen { padding:0; }
   #gameCanvas { display:block; width:100%; height:100%; touch-action:none; }
+
+  /* Оверлей с кодом при старте кооп */
+  #codeOverlay { position:absolute; inset:0; background:rgba(0,0,0,0.88); display:none; flex-direction:column; align-items:center; justify-content:center; z-index:200; padding:20px; text-align:center; }
+  #codeOverlay.active { display:flex; }
+  #codeOverlay h3 { font-size:20px; color:#b0b0b0; margin-bottom:20px; font-weight:normal; }
+  #codeOverlay .bigcode { font-family:'Courier New',monospace; font-size:48px; letter-spacing:8px; color:#ffd700; background:#2a2a2a; border:2px solid #ffd700; border-radius:8px; padding:20px 30px; margin-bottom:20px; user-select:text; -webkit-user-select:text; }
+  #codeOverlay p { color:#888; font-size:14px; margin-bottom:10px; }
+  #codeOverlay .status-txt { color:#70e090; font-size:14px; margin-top:10px; }
+  #codeOverlay .btn { margin-top:20px; }
 
   /* Мобильные контролы */
   #touchControls { position:absolute; inset:0; pointer-events:none; display:none; z-index:10; }
@@ -37,39 +46,28 @@
   #joystick { position:absolute; left:20px; bottom:20px; width:130px; height:130px; border-radius:50%; background:rgba(255,255,255,0.08); border:2px solid rgba(255,255,255,0.18); pointer-events:auto; touch-action:none; }
   #joystick .stick { position:absolute; left:50%; top:50%; width:60px; height:60px; margin-left:-30px; margin-top:-30px; border-radius:50%; background:rgba(255,255,255,0.28); border:2px solid rgba(255,255,255,0.45); transition:transform .05s; }
   .mob-btn {
-    position:absolute;
-    width:56px; height:56px;
-    border-radius:50%;
-    background:rgba(40,40,40,0.75);
-    border:1.5px solid rgba(255,255,255,0.25);
-    color:#e0e0e0;
-    font-size:12px;
-    font-weight:bold;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    pointer-events:auto;
-    touch-action:none;
-    text-align:center;
-    line-height:1.1;
-    padding:2px;
-    user-select:none;
+    position:absolute; width:56px; height:56px; border-radius:50%;
+    background:rgba(40,40,40,0.78); border:1.5px solid rgba(255,255,255,0.25);
+    color:#e0e0e0; font-size:12px; font-weight:bold;
+    display:flex; align-items:center; justify-content:center;
+    pointer-events:auto; touch-action:none; text-align:center;
+    line-height:1.1; padding:2px; user-select:none;
   }
   .mob-btn:active { background:rgba(90,90,90,0.9); }
   .mob-btn.big { width:66px; height:66px; font-size:14px; }
-  #btnE  { right:20px; bottom:130px; background:rgba(70,120,200,0.75); }
-  #btnRun{ right:20px; bottom:60px;  }
+  #btnE  { right:20px; bottom:130px; background:rgba(70,120,200,0.78); }
+  #btnRun{ right:20px; bottom:60px; }
   #btnR  { right:92px; bottom:130px; }
-  #btnF  { right:92px; bottom:60px;  }
-  #btn1  { right:164px; bottom:60px;  }
+  #btnF  { right:92px; bottom:60px; }
+  #btn1  { right:164px; bottom:60px; }
   #btn2  { right:164px; bottom:130px; }
-  #btn3  { right:20px; bottom:200px;  }
+  #btn3  { right:20px; bottom:200px; }
+  #btnPause { position:absolute; bottom:24px; left:50%; transform:translateX(-50%); width:52px; height:52px; font-size:22px; background:rgba(60,60,60,0.85); }
 
   .coop-code { margin-top:20px; padding:12px 24px; background:#2a2a2a; border:1px solid #3a3a3a; border-radius:6px; font-family:'Courier New',monospace; font-size:20px; letter-spacing:3px; text-align:center; }
   .coop-code .label { font-size:12px; color:#888; letter-spacing:1px; margin-bottom:6px; font-family:Arial,sans-serif; }
   .status { font-size:14px; color:#888; margin-top:10px; min-height:20px; text-align:center; }
 
-  /* Мобильная адаптация меню */
   @media (max-width:600px) {
     h1 { font-size:34px; margin-bottom:20px; }
     h2 { font-size:19px; }
@@ -78,6 +76,7 @@
     .slot .num { font-size:24px; }
     .settings { padding:16px 18px; min-width:0; width:90vw; }
     .coop-code { font-size:16px; padding:10px 16px; }
+    #codeOverlay .bigcode { font-size:34px; letter-spacing:6px; padding:16px 20px; }
   }
 </style>
 </head>
@@ -138,6 +137,15 @@
       <div class="mob-btn" id="btn1">🔥<br>костёр</div>
       <div class="mob-btn" id="btn2">🪓<br>топор</div>
       <div class="mob-btn" id="btn3">💤<br>отдых</div>
+      <div class="mob-btn" id="btnPause">⏸</div>
+    </div>
+    <!-- Оверлей с кодом -->
+    <div id="codeOverlay">
+      <h3>КОД КОМНАТЫ — передай другу</h3>
+      <div class="bigcode" id="overlayCode">------</div>
+      <p>Друг должен: Кооператив → Подключиться по коду → ввести этот код</p>
+      <div class="status-txt" id="overlayStatus">Ожидание подключения...</div>
+      <button class="btn" onclick="hideCodeOverlay()">Продолжить</button>
     </div>
   </div>
 
@@ -178,7 +186,6 @@ var currentScreen=null, previousScreen=null, inGame=false;
 function showScreen(n){
   if (currentScreen && screens[currentScreen]) screens[currentScreen].classList.remove('active');
   if (screens[n]) { screens[n].classList.add('active'); currentScreen=n; }
-
   var tc = document.getElementById('touchControls');
   if (tc) {
     if (n === 'gameScreen' && isTouch) tc.classList.add('active');
@@ -193,59 +200,111 @@ function genCode(){
   return s;
 }
 
+function hideCodeOverlay(){
+  var o = document.getElementById('codeOverlay');
+  if (o) o.classList.remove('active');
+}
+window.hideCodeOverlay = hideCodeOverlay;
+
 // ===== СЕТЬ =====
 var peer=null, connections={}, isHost=false, myPeerId=null, roomCode=null;
 var remotePlayers={};
+var peerStatus = 'idle'; // idle, connecting, waiting, connected, error
 
 function closeNetwork(){
   for (var id in connections){ try { connections[id].close(); } catch(e){} }
   connections = {};
   if (peer) { try { peer.destroy(); } catch(e){} peer = null; }
   remotePlayers = {};
+  peerStatus = 'idle';
 }
+
+function peerIdFromCode(code){ return 'hunjub-' + code.toLowerCase(); }
 
 function hostRoom(code, onReady, onError){
   closeNetwork();
   isHost = true; roomCode = code;
-  peer = new Peer('hunjub-' + code, { debug: 1 });
-  peer.on('open', function(id){ myPeerId = id; onReady(code); });
-  peer.on('error', function(err){
-    if (err.type === 'unavailable-id') onError('Код занят, попробуй другой');
-    else onError('Ошибка: ' + err.type);
+  peerStatus = 'connecting';
+  var pid = peerIdFromCode(code);
+  console.log('[Peer] Creating host with ID:', pid);
+  try {
+    peer = new Peer(pid, { debug: 2 });
+  } catch(e) {
+    peerStatus = 'error';
+    onError('Не удалось создать Peer: ' + e.message);
+    return;
+  }
+  peer.on('open', function(id){
+    console.log('[Peer] Host open, id=', id);
+    peerStatus = 'waiting';
+    onReady(code);
   });
-  peer.on('connection', function(conn){ setupConn(conn); });
+  peer.on('error', function(err){
+    console.warn('[Peer] Host error', err);
+    peerStatus = 'error';
+    var m = err.type || err.message;
+    if (m === 'unavailable-id') onError('Код занят, попробуй другой слот');
+    else if (m === 'network') onError('Нет связи с сервером PeerJS');
+    else onError('Ошибка: ' + m);
+  });
+  peer.on('connection', function(conn){
+    console.log('[Peer] Incoming connection from', conn.peer);
+    setupConn(conn);
+  });
 }
 
 function joinRoom(code, onReady, onError){
   closeNetwork();
   isHost = false; roomCode = code;
-  peer = new Peer({ debug: 1 });
+  peerStatus = 'connecting';
+  var pid = peerIdFromCode(code);
+  console.log('[Peer] Joining', pid);
+  try {
+    peer = new Peer({ debug: 2 });
+  } catch(e) {
+    peerStatus = 'error';
+    onError('Не удалось создать Peer: ' + e.message);
+    return;
+  }
   var timedOut = false;
-  var tmr = setTimeout(function(){ if (!peer || !peer.open){ timedOut = true; onError('Таймаут подключения'); } }, 12000);
+  var tmr = setTimeout(function(){
+    if (peerStatus !== 'connected'){
+      timedOut = true;
+      peerStatus = 'error';
+      onError('Таймаут подключения (хост не отвечает)');
+    }
+  }, 15000);
+
   peer.on('open', function(id){
     myPeerId = id;
     if (timedOut) return;
-    var conn = peer.connect('hunjub-' + code, { reliable: true });
+    console.log('[Peer] Client open, connecting to', pid);
+    var conn = peer.connect(pid, { reliable: true });
     setupConn(conn);
     conn.on('open', function(){
       clearTimeout(tmr);
       if (timedOut) return;
+      peerStatus = 'connected';
+      console.log('[Peer] Connected!');
       conn.send({type:'hello', id: myPeerId, name: myName});
       onReady(code);
     });
   });
   peer.on('error', function(err){
     clearTimeout(tmr);
-    if (err.type === 'peer-unavailable') onError('Комната не найдена');
-    else onError('Ошибка: ' + err.type);
+    console.warn('[Peer] Client error', err);
+    peerStatus = 'error';
+    if (err.type === 'peer-unavailable') onError('Комната не найдена. Проверь код.');
+    else onError('Ошибка: ' + (err.type || err.message));
   });
 }
 
 function setupConn(conn){
   conn.on('open', function(){
     connections[conn.peer] = conn;
+    peerStatus = 'connected';
     if (!isHost) conn.send({type:'hello', id: myPeerId, name: myName});
-    else if (game) sendWorldState();
+    else if (game){ sendWorldState(); updateOverlayStatus(); }
   });
   conn.on('data', function(msg){ onNetMessage(msg, conn); });
   conn.on('close', function(){
@@ -269,7 +328,11 @@ function onNetMessage(msg, conn){
       x: game ? game.player.x + 60 : 0, y: game ? game.player.y + 60 : 0,
       hp: 100, isDowned: false, downTimer: 0, hasBandage: false, lastSeen: performance.now()
     };
-    if (isHost && game){ sendWorldState(); showMsg(msg.name + ' подключился!'); }
+    if (isHost && game){
+      sendWorldState();
+      showMsg(msg.name + ' подключился!');
+      updateOverlayStatus();
+    }
     return;
   }
   if (msg.type === 'player'){
@@ -320,7 +383,6 @@ function sendWorldState(){
     msg: game.messageTimer>0 ? game.message : null
   }});
 }
-
 function sendPlayerState(){
   if (!game) return;
   broadcast({ type:'player', id: myPeerId, data:{
@@ -328,6 +390,21 @@ function sendPlayerState(){
     hp: game.stats.hp, isDowned: game.player.isDowned,
     downTimer: game.player.downTimer, hasBandage: game.inv.hasBandage
   }});
+}
+
+function updateOverlayStatus(){
+  var el = document.getElementById('overlayStatus');
+  if (!el) return;
+  var conns = Object.keys(connections).length;
+  if (isHost){
+    if (conns > 0) el.textContent = '✅ Игрок подключён (' + conns + ')';
+    else if (peerStatus === 'connecting') el.textContent = '⏳ Подключение к серверу...';
+    else if (peerStatus === 'waiting') el.textContent = '✅ Код активен. Ждём друга...';
+    else if (peerStatus === 'error') el.textContent = '❌ Ошибка сети. Попробуй другой слот.';
+  } else {
+    if (peerStatus === 'connected') el.textContent = '✅ Подключено!';
+    else el.textContent = '⏳ Подключение...';
+  }
 }
 
 var myName = 'Игрок-' + Math.floor(Math.random()*9000+1000);
@@ -358,10 +435,14 @@ function submitJoin(){
   st.textContent = 'Подключение...'; st.style.color='#e0d070';
   joinRoom(code,
     function(okCode){
-      st.textContent = 'Подключено!'; st.style.color='#70e090';
-      startGame('coop', 'join', okCode, 'client');
+      st.textContent = 'Подключено!';
+      st.style.color='#70e090';
+      setTimeout(function(){ startGame('coop', 'join', okCode, 'client'); }, 400);
     },
-    function(err){ st.textContent = err; st.style.color='#e07070'; }
+    function(err){
+      st.textContent = err;
+      st.style.color='#e07070';
+    }
   );
 }
 
@@ -400,10 +481,24 @@ function startGame(type, slot, joinCode, role){
   var pauseBox = document.getElementById('pauseCoopCode');
   if (type==='coop'){
     pauseBox.style.display='block';
+    document.getElementById('coopCodeText').textContent = game.coopCode;
+
+    // Показать оверлей с кодом сразу для хоста
     if (isHost){
+      var ov = document.getElementById('codeOverlay');
+      document.getElementById('overlayCode').textContent = game.coopCode;
+      document.getElementById('overlayStatus').textContent = '⏳ Подключение к серверу...';
+      ov.classList.add('active');
+
       hostRoom(game.coopCode,
-        function(){ document.getElementById('coopCodeText').textContent = game.coopCode; },
-        function(err){ alert(err); go('to-main'); }
+        function(){
+          updateOverlayStatus();
+          document.getElementById('coopCodeText').textContent = game.coopCode + ' · ждём';
+        },
+        function(err){
+          document.getElementById('overlayStatus').textContent = '❌ ' + err;
+          document.getElementById('overlayStatus').style.color = '#e07070';
+        }
       );
     } else {
       document.getElementById('coopCodeText').textContent = game.coopCode + ' (подключён)';
@@ -420,6 +515,7 @@ function stopGame(){
   rafId = null;
   closeNetwork();
   game = null;
+  hideCodeOverlay();
 }
 
 function resizeCanvas(){
@@ -462,7 +558,7 @@ function generateWorld(){
   g.enemies=[];
 }
 
-var netTimer=0, worldTimer=0;
+var netTimer=0, worldTimer=0, overlayStatusTimer=0;
 function update(dt){
   var g = game;
   g.time += dt;
@@ -587,17 +683,20 @@ function update(dt){
     worldTimer += dt;
     if (worldTimer>0.1){ worldTimer=0; sendWorldState(); }
   }
+
+  overlayStatusTimer += dt;
+  if (overlayStatusTimer > 0.8){
+    overlayStatusTimer = 0;
+    var ov = document.getElementById('codeOverlay');
+    if (ov && ov.classList.contains('active')) updateOverlayStatus();
+  }
 }
 
 function respawnAfterDeath(){
   var g = game;
-  g.stats.hp = 100;
-  g.stats.hunger = 60;
-  g.stats.water = 60;
-  g.stats.energy = 100;
-  g.stats.temp = 0;
-  g.player.isDowned = false;
-  g.player.downTimer = 0;
+  g.stats.hp = 100; g.stats.hunger = 60; g.stats.water = 60;
+  g.stats.energy = 100; g.stats.temp = 0;
+  g.player.isDowned = false; g.player.downTimer = 0;
   g.respawning = false;
 }
 
@@ -797,6 +896,14 @@ function rest(){
   showMsg('Отдохнул');
 }
 function showMsg(t){ if (!game) return; game.message=t; game.messageTimer=2.2; }
+
+function pauseGame(){
+  if (game && currentScreen === 'gameScreen'){
+    game.paused = true;
+    showScreen('pauseScreen');
+  }
+}
+window.pauseGame = pauseGame;
 
 function loop(t){
   if (!game){ rafId=null; return; }
@@ -1067,8 +1174,8 @@ function drawHint(c,g){
     if (d<b.r+40 && d<bestD){ bestD=d; best={type:'bandage'}; }
   }
   if (!best) return;
-  var names = {tree:'Рубить дерево',stone:'Добыть камень',bush:'Собрать ягоды',water:'Набрать воды',coin:'Подобрать монету',bandage:'Подобрать бинт'};
-  var txt = (isTouch ? 'ТАП E' : 'E') + ' — ' + names[best.type];
+  var names = {tree:'Рубить',stone:'Камень',bush:'Ягоды',water:'Вода',coin:'Монета',bandage:'Бинт'};
+  var txt = (isTouch ? 'E — ' : 'E — ') + names[best.type];
   c.font='bold 14px Arial'; c.textAlign='center'; c.textBaseline='middle';
   var tw = c.measureText(txt).width;
   c.fillStyle='rgba(0,0,0,0.75)';
@@ -1087,7 +1194,7 @@ function drawHUD(c){
     {name:'HP',val:g.stats.hp,color:'#e04040'},
     {name:'Голод',val:g.stats.hunger,color:'#e09040'},
     {name:'Вода',val:g.stats.water,color:'#4090e0'},
-    {name:'Энергия',val:g.stats.energy,color:'#e0e040'}
+    {name:'Энер',val:g.stats.energy,color:'#e0e040'}
   ];
   var bx=15, by=15, bw=140;
   for (var i=0;i<bars.length;i++){
@@ -1097,9 +1204,8 @@ function drawHUD(c){
     c.fillStyle=b.color; c.fillRect(bx,y,bw*pct,14);
     c.strokeStyle='#000'; c.lineWidth=1; c.strokeRect(bx,y,bw,14);
     c.fillStyle='#fff'; c.textAlign='left';
-    c.fillText(b.name+': '+Math.round(b.val),bx+5,y+7);
+    c.fillText(b.name+':'+Math.round(b.val),bx+5,y+7);
   }
-
   var ty=by+bars.length*20+4;
   c.fillStyle='rgba(0,0,0,0.55)'; c.fillRect(bx,ty,bw,14);
   var cx=bx+bw/2, t=g.stats.temp;
@@ -1108,9 +1214,9 @@ function drawHUD(c){
   c.strokeStyle='#888'; c.beginPath(); c.moveTo(cx,ty); c.lineTo(cx,ty+14); c.stroke();
   c.strokeStyle='#000'; c.strokeRect(bx,ty,bw,14);
   c.fillStyle='#fff'; c.textAlign='left';
-  c.fillText('Темп: '+(t>0?'+':'')+Math.round(t),bx+5,ty+7);
+  c.fillText('Т:'+(t>0?'+':'')+Math.round(t),bx+5,ty+7);
 
-  // Инвентарь компактнее
+  // Инвентарь
   c.textAlign='right';
   var rx=W-10, iy=15;
   var lines=['Д:'+g.inv.wood,'К:'+g.inv.stone,'Е:'+g.inv.food,'В:'+g.inv.water,'💰'+g.inv.coins,'🪓'+(g.inv.hasAxe?'✓':'—'),'💊'+(g.inv.hasBandage?'✓':'—')];
@@ -1120,6 +1226,7 @@ function drawHUD(c){
     c.fillText(lines[i],rx-5,iy+i*18+8);
   }
 
+  // Время
   var cycle=g.dayDur+g.nightDur, tIn=g.time%cycle;
   var isNight = tIn>=g.dayDur;
   var label = isNight?'НОЧЬ':'ДЕНЬ';
@@ -1134,7 +1241,20 @@ function drawHUD(c){
   c.fillStyle='#ffd700';
   c.fillText('Ночь '+g.level+' · '+WEATHER_NAMES[g.weather],W/2,50);
 
-  // подсказки только для ПК
+  // КОД КООПЕРАТИВА (виден всегда, если кооп)
+  if (g.type==='coop'){
+    var codeY = 62;
+    c.fillStyle='rgba(0,0,0,0.75)';
+    c.fillRect(W/2-120, codeY, 240, 26);
+    c.strokeStyle='#ffd700'; c.lineWidth=1.5;
+    c.strokeRect(W/2-120, codeY, 240, 26);
+    c.fillStyle='#ffd700'; c.font='bold 15px "Courier New", monospace';
+    c.textAlign='center'; c.textBaseline='middle';
+    var conns = Object.keys(connections).length;
+    var status = isHost ? (conns>0 ? '· '+conns+' ✅' : '· ждём...') : '· OK';
+    c.fillText('КОД: ' + g.coopCode + ' ' + status, W/2, codeY + 13);
+  }
+
   if (!isTouch){
     c.textAlign='left'; c.font='12px Arial';
     c.fillStyle='rgba(0,0,0,0.6)'; c.fillRect(15,H-130,300,115);
@@ -1144,32 +1264,26 @@ function drawHUD(c){
     c.fillText('E — взаимодействие',25,H-80);
     c.fillText('R — есть, F — пить',25,H-64);
     c.fillText('1 — костёр, 2 — топор, 3 — отдых',25,H-48);
+    c.fillText('ESC — пауза',25,H-32);
   }
 
   if (g.messageTimer>0 && g.message){
     c.textAlign='center'; c.font='bold 16px Arial';
     var tw = c.measureText(g.message).width;
+    var msgY = g.type==='coop' ? 100 : 70;
     c.fillStyle='rgba(0,0,0,0.78)';
-    c.fillRect(W/2-tw/2-15,70,tw+30,36);
+    c.fillRect(W/2-tw/2-15,msgY,tw+30,36);
     c.strokeStyle='#ffd700'; c.lineWidth=2;
-    c.strokeRect(W/2-tw/2-15,70,tw+30,36);
+    c.strokeRect(W/2-tw/2-15,msgY,tw+30,36);
     c.fillStyle='#ffd700';
-    c.fillText(g.message,W/2,88);
-  }
-
-  if (g.type==='coop'){
-    c.textAlign='center'; c.font='11px Arial';
-    c.fillStyle='rgba(0,0,0,0.55)'; c.fillRect(W/2-90, 62, 180, 18);
-    c.fillStyle = isHost ? '#a0ffa0' : '#a0a0ff';
-    var conns = Object.keys(connections).length;
-    c.fillText('Кооп · ' + (isHost?'ХОСТ':'КЛИЕНТ') + ' · ' + (conns+1) + ' игр.', W/2, 72);
+    c.fillText(g.message,W/2,msgY+18);
   }
 }
 
 // ===== КЛАВИАТУРА =====
 document.addEventListener('keydown', function(e){
   if (e.key==='Escape'){
-    if (currentScreen==='gameScreen' && game){ game.paused=true; showScreen('pauseScreen'); e.preventDefault(); }
+    if (currentScreen==='gameScreen' && game){ pauseGame(); e.preventDefault(); }
     else if (currentScreen==='pauseScreen' && game){ game.paused=false; showScreen('gameScreen'); lastT=performance.now(); e.preventDefault(); }
     return;
   }
@@ -1189,7 +1303,7 @@ document.addEventListener('keyup', function(e){
   if (keyMap[e.key]) keys[keyMap[e.key]]=false;
 });
 
-// ===== МОБИЛЬНОЕ УПРАВЛЕНИЕ =====
+// ===== ТАЧ =====
 function setupTouch(){
   var joystick = document.getElementById('joystick');
   var stick = joystick.querySelector('.stick');
@@ -1212,14 +1326,12 @@ function setupTouch(){
     var dx = t.clientX - jStart.x;
     var dy = t.clientY - jStart.y;
     var d = Math.hypot(dx, dy);
-    if (d > jRadius){ dx = dx/d*jRadius; dy = dy/d*jRadius; d = jRadius; }
+    if (d > jRadius){ dx = dx/d*jRadius; dy = dy/d*jRadius; }
     stick.style.transform = 'translate(' + dx + 'px,' + dy + 'px)';
     var nx = dx / jRadius, ny = dy / jRadius;
     var dead = 0.25;
-    keys.a = nx < -dead;
-    keys.d = nx > dead;
-    keys.w = ny < -dead;
-    keys.s = ny > dead;
+    keys.a = nx < -dead; keys.d = nx > dead;
+    keys.w = ny < -dead; keys.s = ny > dead;
   }
   function jEnd(){
     jActive = false;
@@ -1252,6 +1364,7 @@ function setupTouch(){
   bindBtn('btn2', function(){ if(game&&!game.paused) craftAxe(); });
   bindBtn('btn3', function(){ if(game&&!game.paused) rest(); });
   bindBtn('btnRun', function(){ keys.shift = true; }, function(){ keys.shift = false; });
+  bindBtn('btnPause', function(){ if(game && currentScreen==='gameScreen'){ pauseGame(); } });
 }
 
 // ===== СТАРТ =====
