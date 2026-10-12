@@ -5,6 +5,23 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>HunJub</title>
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script type="module">
+// Подгружаем Trystero со всеми стратегиями через CDN
+window.__trystero = {};
+try {
+  const nostr = await import('https://esm.run/trystero');
+  window.__trystero.nostr = nostr;
+} catch(e) { console.warn('Nostr strategy failed', e); }
+try {
+  const mqtt = await import('https://esm.run/trystero/mqtt');
+  window.__trystero.mqtt = mqtt;
+} catch(e) { console.warn('MQTT strategy failed', e); }
+try {
+  const torrent = await import('https://esm.run/trystero/torrent');
+  window.__trystero.torrent = torrent;
+} catch(e) { console.warn('Torrent strategy failed', e); }
+window.dispatchEvent(new Event('trystero-ready'));
+</script>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   html,body { width:100%; height:100%; font-family:Arial,sans-serif; background:#1e1e1e; color:#e0e0e0; overflow:hidden; touch-action:none; user-select:none; -webkit-user-select:none; }
@@ -19,6 +36,7 @@
   h2 { font-size:22px; font-weight:normal; color:#b0b0b0; margin-bottom:20px; text-align:center; }
   .btn { display:block; min-width:240px; padding:16px 24px; margin:6px; font-size:17px; font-family:inherit; color:#e0e0e0; background:#2a2a2a; border:1px solid #3a3a3a; border-radius:6px; cursor:pointer; transition:background .15s; }
   .btn:hover,.btn:active { background:#353535; }
+  .btn:disabled { opacity:.5; cursor:not-allowed; }
   .slots { display:flex; gap:12px; margin-bottom:20px; flex-wrap:wrap; justify-content:center; }
   .slot { width:140px; height:130px; background:#2a2a2a; border:1px solid #3a3a3a; border-radius:6px; cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:12px; text-align:center; transition:background .15s; }
   .slot:hover,.slot:active { background:#353535; }
@@ -30,29 +48,18 @@
   .row input[type=text] { background:#1e1e1e; color:#e0e0e0; border:1px solid #3a3a3a; padding:10px 12px; border-radius:4px; font-family:'Courier New',monospace; width:180px; text-align:center; letter-spacing:4px; font-size:18px; text-transform:uppercase; }
   #gameScreen { padding:0; }
   #gameCanvas { display:block; width:100%; height:100%; touch-action:none; }
-
-  /* Оверлей с кодом при старте кооп */
-  #codeOverlay { position:absolute; inset:0; background:rgba(0,0,0,0.88); display:none; flex-direction:column; align-items:center; justify-content:center; z-index:200; padding:20px; text-align:center; }
+  #codeOverlay { position:absolute; inset:0; background:rgba(0,0,0,0.9); display:none; flex-direction:column; align-items:center; justify-content:center; z-index:200; padding:20px; text-align:center; }
   #codeOverlay.active { display:flex; }
   #codeOverlay h3 { font-size:20px; color:#b0b0b0; margin-bottom:20px; font-weight:normal; }
   #codeOverlay .bigcode { font-family:'Courier New',monospace; font-size:48px; letter-spacing:8px; color:#ffd700; background:#2a2a2a; border:2px solid #ffd700; border-radius:8px; padding:20px 30px; margin-bottom:20px; user-select:text; -webkit-user-select:text; }
-  #codeOverlay p { color:#888; font-size:14px; margin-bottom:10px; }
-  #codeOverlay .status-txt { color:#70e090; font-size:14px; margin-top:10px; }
+  #codeOverlay .status-txt { color:#70e090; font-size:14px; margin-top:14px; min-height:20px; }
+  #codeOverlay .strategy-txt { color:#888; font-size:12px; margin-top:6px; }
   #codeOverlay .btn { margin-top:20px; }
-
-  /* Мобильные контролы */
   #touchControls { position:absolute; inset:0; pointer-events:none; display:none; z-index:10; }
   #touchControls.active { display:block; }
   #joystick { position:absolute; left:20px; bottom:20px; width:130px; height:130px; border-radius:50%; background:rgba(255,255,255,0.08); border:2px solid rgba(255,255,255,0.18); pointer-events:auto; touch-action:none; }
   #joystick .stick { position:absolute; left:50%; top:50%; width:60px; height:60px; margin-left:-30px; margin-top:-30px; border-radius:50%; background:rgba(255,255,255,0.28); border:2px solid rgba(255,255,255,0.45); transition:transform .05s; }
-  .mob-btn {
-    position:absolute; width:56px; height:56px; border-radius:50%;
-    background:rgba(40,40,40,0.78); border:1.5px solid rgba(255,255,255,0.25);
-    color:#e0e0e0; font-size:12px; font-weight:bold;
-    display:flex; align-items:center; justify-content:center;
-    pointer-events:auto; touch-action:none; text-align:center;
-    line-height:1.1; padding:2px; user-select:none;
-  }
+  .mob-btn { position:absolute; width:56px; height:56px; border-radius:50%; background:rgba(40,40,40,0.78); border:1.5px solid rgba(255,255,255,0.25); color:#e0e0e0; font-size:12px; font-weight:bold; display:flex; align-items:center; justify-content:center; pointer-events:auto; touch-action:none; text-align:center; line-height:1.1; padding:2px; user-select:none; }
   .mob-btn:active { background:rgba(90,90,90,0.9); }
   .mob-btn.big { width:66px; height:66px; font-size:14px; }
   #btnE  { right:20px; bottom:130px; background:rgba(70,120,200,0.78); }
@@ -63,11 +70,9 @@
   #btn2  { right:164px; bottom:130px; }
   #btn3  { right:20px; bottom:200px; }
   #btnPause { position:absolute; bottom:24px; left:50%; transform:translateX(-50%); width:52px; height:52px; font-size:22px; background:rgba(60,60,60,0.85); }
-
   .coop-code { margin-top:20px; padding:12px 24px; background:#2a2a2a; border:1px solid #3a3a3a; border-radius:6px; font-family:'Courier New',monospace; font-size:20px; letter-spacing:3px; text-align:center; }
   .coop-code .label { font-size:12px; color:#888; letter-spacing:1px; margin-bottom:6px; font-family:Arial,sans-serif; }
   .status { font-size:14px; color:#888; margin-top:10px; min-height:20px; text-align:center; }
-
   @media (max-width:600px) {
     h1 { font-size:34px; margin-bottom:20px; }
     h2 { font-size:19px; }
@@ -75,7 +80,6 @@
     .slot { width:120px; height:115px; }
     .slot .num { font-size:24px; }
     .settings { padding:16px 18px; min-width:0; width:90vw; }
-    .coop-code { font-size:16px; padding:10px 16px; }
     #codeOverlay .bigcode { font-size:34px; letter-spacing:6px; padding:16px 20px; }
   }
 </style>
@@ -139,12 +143,12 @@
       <div class="mob-btn" id="btn3">💤<br>отдых</div>
       <div class="mob-btn" id="btnPause">⏸</div>
     </div>
-    <!-- Оверлей с кодом -->
     <div id="codeOverlay">
       <h3>КОД КОМНАТЫ — передай другу</h3>
       <div class="bigcode" id="overlayCode">------</div>
-      <p>Друг должен: Кооператив → Подключиться по коду → ввести этот код</p>
-      <div class="status-txt" id="overlayStatus">Ожидание подключения...</div>
+      <p style="color:#888; font-size:13px;">Друг: Кооператив → Подключиться по коду → ввести этот код</p>
+      <div class="status-txt" id="overlayStatus">⏳ Подключение к серверу...</div>
+      <div class="strategy-txt" id="overlayStrategy"></div>
       <button class="btn" onclick="hideCodeOverlay()">Продолжить</button>
     </div>
   </div>
@@ -183,6 +187,7 @@ var screens = {
   exitScreen: document.getElementById('exitScreen')
 };
 var currentScreen=null, previousScreen=null, inGame=false;
+
 function showScreen(n){
   if (currentScreen && screens[currentScreen]) screens[currentScreen].classList.remove('active');
   if (screens[n]) { screens[n].classList.add('active'); currentScreen=n; }
@@ -199,126 +204,336 @@ function genCode(){
   for (var i=0;i<6;i++) s += ch.charAt(Math.floor(Math.random()*ch.length));
   return s;
 }
-
 function hideCodeOverlay(){
   var o = document.getElementById('codeOverlay');
   if (o) o.classList.remove('active');
 }
 window.hideCodeOverlay = hideCodeOverlay;
 
-// ===== СЕТЬ =====
-var peer=null, connections={}, isHost=false, myPeerId=null, roomCode=null;
-var remotePlayers={};
-var peerStatus = 'idle'; // idle, connecting, waiting, connected, error
+/* ============================================================
+   КАСКАДНАЯ СЕТЬ: 6 СПОСОБОВ ПОДКЛЮЧЕНИЯ ПО ОЧЕРЕДИ
+   ============================================================ */
+
+var NET_STRATEGIES = [
+  { name: 'Trystero Nostr',   kind: 'trystero', module: 'nostr',   timeout: 8000 },
+  { name: 'Trystero MQTT',    kind: 'trystero', module: 'mqtt',    timeout: 8000 },
+  { name: 'Trystero Torrent', kind: 'trystero', module: 'torrent', timeout: 8000 },
+  { name: 'PeerJS #1',        kind: 'peerjs',   host: '0.peerjs.com',                 port: 443, secure: true, path: '/', timeout: 8000 },
+  { name: 'PeerJS #2',        kind: 'peerjs',   host: 'peerjs.92k.de',                port: 443, secure: true, path: '/', timeout: 8000 },
+  { name: 'PeerJS #3',        kind: 'peerjs',   host: 'peerjs-server.herokuapp.com',  port: 443, secure: true, path: '/', timeout: 8000 }
+];
+
+var TURN_SERVERS = [
+  { urls: 'stun:stun.l.google.com:19302' },
+  { urls: 'stun:stun1.l.google.com:19302' },
+  { urls: 'stun:stun2.l.google.com:19302' },
+  { urls: 'stun:stun.cloudflare.com:3478' },
+  { urls: 'turn:openrelay.metered.ca:80',  username: 'openrelayproject', credential: 'openrelayproject' },
+  { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
+  { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' }
+];
+
+var net = {
+  strategyIdx: -1,
+  active: false,
+  mode: null,       // 'trystero' | 'peerjs'
+  trysteroRoom: null,
+  peer: null,
+  conn: null,       // для peerjs host/client
+  conns: {},        // все peerjs соединения (у хоста может быть много)
+  isHost: false,
+  myId: null,
+  roomCode: null,
+  timeoutHandle: null,
+  connected: false,
+  lastError: ''
+};
 
 function closeNetwork(){
-  for (var id in connections){ try { connections[id].close(); } catch(e){} }
-  connections = {};
-  if (peer) { try { peer.destroy(); } catch(e){} peer = null; }
+  if (net.timeoutHandle) { clearTimeout(net.timeoutHandle); net.timeoutHandle = null; }
+  if (net.trysteroRoom) { try { net.trysteroRoom.leave(); } catch(e){} net.trysteroRoom = null; }
+  if (net.peer) { try { net.peer.destroy(); } catch(e){} net.peer = null; }
+  for (var id in net.conns) { try { net.conns[id].close(); } catch(e){} }
+  net.conns = {};
+  net.conn = null;
+  net.active = false;
+  net.connected = false;
+  net.mode = null;
+  net.strategyIdx = -1;
+  net.roomCode = null;
   remotePlayers = {};
-  peerStatus = 'idle';
 }
+window.closeNetwork = closeNetwork;
 
 function peerIdFromCode(code){ return 'hunjub-' + code.toLowerCase(); }
 
-function hostRoom(code, onReady, onError){
+function updateOverlayStatus(txt, color){
+  var el = document.getElementById('overlayStatus');
+  if (!el) return;
+  if (txt) el.textContent = txt;
+  if (color) el.style.color = color;
+}
+function updateOverlayStrategy(){
+  var el = document.getElementById('overlayStrategy');
+  if (!el) return;
+  if (net.strategyIdx >= 0 && net.strategyIdx < NET_STRATEGIES.length) {
+    el.textContent = 'Способ: ' + NET_STRATEGIES[net.strategyIdx].name + ' (' + (net.strategyIdx+1) + '/' + NET_STRATEGIES.length + ')';
+  } else {
+    el.textContent = '';
+  }
+}
+
+// Запуск каскада
+function startNetworkCascade(code, isHostRole){
   closeNetwork();
-  isHost = true; roomCode = code;
-  peerStatus = 'connecting';
-  var pid = peerIdFromCode(code);
-  console.log('[Peer] Creating host with ID:', pid);
-  try {
-    peer = new Peer(pid, { debug: 2 });
-  } catch(e) {
-    peerStatus = 'error';
-    onError('Не удалось создать Peer: ' + e.message);
+  net.roomCode = code;
+  net.isHost = isHostRole;
+  net.strategyIdx = -1;
+  tryStrategy(0);
+}
+
+function tryStrategy(idx){
+  if (idx >= NET_STRATEGIES.length) {
+    updateOverlayStatus('❌ Не удалось подключиться ни одним способом', '#e07070');
+    updateOverlayStrategy();
     return;
   }
-  peer.on('open', function(id){
-    console.log('[Peer] Host open, id=', id);
-    peerStatus = 'waiting';
-    onReady(code);
+  net.strategyIdx = idx;
+  var strat = NET_STRATEGIES[idx];
+  updateOverlayStatus('⏳ Пробую: ' + strat.name + '...', '#e0d070');
+  updateOverlayStrategy();
+  console.log('[Net] Trying strategy', strat.name);
+
+  if (strat.kind === 'trystero') tryTrystero(strat, function(ok){
+    if (ok) return;
+    console.warn('[Net] Strategy failed:', strat.name);
+    tryStrategy(idx + 1);
   });
-  peer.on('error', function(err){
-    console.warn('[Peer] Host error', err);
-    peerStatus = 'error';
-    var m = err.type || err.message;
-    if (m === 'unavailable-id') onError('Код занят, попробуй другой слот');
-    else if (m === 'network') onError('Нет связи с сервером PeerJS');
-    else onError('Ошибка: ' + m);
-  });
-  peer.on('connection', function(conn){
-    console.log('[Peer] Incoming connection from', conn.peer);
-    setupConn(conn);
+  else if (strat.kind === 'peerjs') tryPeerJS(strat, function(ok){
+    if (ok) return;
+    console.warn('[Net] Strategy failed:', strat.name);
+    tryStrategy(idx + 1);
   });
 }
 
-function joinRoom(code, onReady, onError){
-  closeNetwork();
-  isHost = false; roomCode = code;
-  peerStatus = 'connecting';
-  var pid = peerIdFromCode(code);
-  console.log('[Peer] Joining', pid);
-  try {
-    peer = new Peer({ debug: 2 });
-  } catch(e) {
-    peerStatus = 'error';
-    onError('Не удалось создать Peer: ' + e.message);
+// --- TRYSTERO ---
+function tryTrystero(strat, onFail){
+  var mod = window.__trystero && window.__trystero[strat.module];
+  if (!mod || !mod.joinRoom) {
+    console.warn('[Trystero] module not loaded:', strat.module);
+    onFail();
     return;
   }
-  var timedOut = false;
-  var tmr = setTimeout(function(){
-    if (peerStatus !== 'connected'){
-      timedOut = true;
-      peerStatus = 'error';
-      onError('Таймаут подключения (хост не отвечает)');
+  var config = {
+    appId: 'hunjub-survival-game-v1',
+    password: 'hunjub-secret-2025',
+    rtcConfig: { iceServers: TURN_SERVERS }
+  };
+  var room;
+  try { room = mod.joinRoom(config, net.roomCode); }
+  catch(e){ console.warn('[Trystero] joinRoom error', e); onFail(); return; }
+
+  net.mode = 'trystero';
+  net.trysteroRoom = room;
+  net.myId = 'me_' + Math.random().toString(36).slice(2,8);
+
+  var joined = false;
+  var failTimer = setTimeout(function(){
+    if (!joined && !net.connected) {
+      console.warn('[Trystero] timeout');
+      try { room.leave(); } catch(e){}
+      net.trysteroRoom = null;
+      onFail();
     }
-  }, 15000);
+  }, strat.timeout);
+
+  // Универсальные действия (для синхронизации игры)
+  var actPlayer, actWorld, actInteract, actRevive, actBandage, actChat;
+
+  room.onPeerJoin = function(peerId){
+    console.log('[Trystero] peer joined', peerId);
+    if (!joined) { joined = true; clearTimeout(failTimer); }
+    net.connected = true;
+    net.active = true;
+    updateOverlayStatus('✅ Подключён игрок (' + (Object.keys(remotePlayers).length + 1) + ')', '#70e090');
+    updateOverlayStrategy();
+    // сообщаем имя
+    if (actPlayer && actPlayer.send) {
+      try { actPlayer.send({ type: 'hello', id: peerId, name: myName }); } catch(e){}
+    }
+    if (isHost && game) { sendWorldState(); }
+  };
+
+  room.onPeerLeave = function(peerId){
+    delete remotePlayers[peerId];
+    if (game) showMsg('Игрок отключился');
+  };
+
+  // Регистрируем действия
+  actPlayer = room.makeAction('player');
+  actPlayer.onMessage = function(data, meta){
+    if (!game) return;
+    var peerId = meta.peerId;
+    if (!remotePlayers[peerId]) {
+      remotePlayers[peerId] = { id: peerId, name: data.name || 'Игрок',
+        x: game.player.x + 60, y: game.player.y + 60,
+        hp: 100, isDowned: false, downTimer: 0, hasBandage: false, lastSeen: performance.now() };
+    }
+    var rp = remotePlayers[peerId];
+    rp.x = data.x; rp.y = data.y; rp.hp = data.hp;
+    rp.isDowned = data.isDowned; rp.downTimer = data.downTimer;
+    rp.hasBandage = data.hasBandage; rp.name = data.name;
+    rp.lastSeen = performance.now();
+  };
+
+  actWorld = room.makeAction('world');
+  actWorld.onMessage = function(w, meta){
+    if (!game || isHost) return;
+    game.time=w.time; game.isNight=w.isNight; game.weather=w.weather;
+    game.level=w.level; game.nightsSurvived=w.nightsSurvived;
+    game.dayDur=w.dayDur; game.nightDur=w.nightDur;
+    game.campfire=w.campfire; game.enemies=w.enemies;
+    game.resources=w.resources; game.bandages=w.bandages||[];
+    if (w.msg){ game.message=w.msg; game.messageTimer=2.2; }
+  };
+
+  actInteract = room.makeAction('interact');
+  actInteract.onMessage = function(data, meta){
+    if (!game || !isHost) return;
+    var fake = { x: data.x, y: data.y, r: 14 };
+    performInteract(fake, meta.peerId);
+  };
+
+  actRevive = room.makeAction('revive');
+  actRevive.onMessage = function(data, meta){
+    if (!game) return;
+    if (data.targetId === net.myId && game.player.isDowned){
+      game.player.isDowned = false; game.player.downTimer = 0;
+      game.stats.hp = 40; showMsg('Тебя оживили!');
+    }
+  };
+
+  actBandage = room.makeAction('bandage');
+  actBandage.onMessage = function(data, meta){
+    if (game && game.bandages[data.idx]) game.bandages.splice(data.idx, 1);
+  };
+
+  actChat = room.makeAction('chat');
+  actChat.onMessage = function(data, meta){
+    if (data && data.text) showMsg(data.text);
+  };
+
+  // Сохраняем ссылки для отправки
+  net.sendPlayer = function(){ try { actPlayer.send({ name: myName, x: game.player.x, y: game.player.y, hp: game.stats.hp, isDowned: game.player.isDowned, downTimer: game.player.downTimer, hasBandage: game.inv.hasBandage }); } catch(e){} };
+  net.sendWorld = function(){ try { actWorld.send({ time:game.time, isNight:game.isNight, weather:game.weather, level:game.level, nightsSurvived:game.nightsSurvived, dayDur:game.dayDur, nightDur:game.nightDur, campfire:game.campfire, enemies:game.enemies, resources:game.resources, bandages:game.bandages, msg: game.messageTimer>0?game.message:null }); } catch(e){} };
+  net.sendInteract = function(x,y){ try { actInteract.send({ x:x, y:y }); } catch(e){} };
+  net.sendRevive = function(targetId){ try { actRevive.send({ targetId: targetId }); } catch(e){} };
+  net.sendBandage = function(idx){ try { actBandage.send({ idx: idx }); } catch(e){} };
+  net.sendChat = function(text){ try { actChat.send({ text: text }); } catch(e){} };
+
+  // Если мы клиент — считаем "подключено" как только joinRoom сработал
+  if (!isHostRole) {
+    joined = true;
+    clearTimeout(failTimer);
+    net.active = true;
+    updateOverlayStatus('✅ Комната найдена, ждём хоста...', '#70e090');
+    updateOverlayStrategy();
+    // Через 2 сек считаем что соединение установлено
+    setTimeout(function(){
+      if (net.mode === 'trystero' && net.trysteroRoom === room) {
+        net.connected = true;
+        updateOverlayStatus('✅ Подключено!', '#70e090');
+      }
+    }, 2000);
+  }
+}
+
+// --- PEERJS ---
+function tryPeerJS(strat, onFail){
+  if (typeof Peer === 'undefined') { onFail(); return; }
+  net.mode = 'peerjs';
+
+  var opts = {
+    debug: 1,
+    host: strat.host, port: strat.port, secure: strat.secure, path: strat.path,
+    config: { iceServers: TURN_SERVERS }
+  };
+
+  var peer;
+  try {
+    if (net.isHost) {
+      peer = new Peer(peerIdFromCode(net.roomCode), opts);
+    } else {
+      peer = new Peer(opts);
+    }
+  } catch(e){ console.warn('[PeerJS] create error', e); onFail(); return; }
+
+  net.peer = peer;
+  var failed = false;
+  var failTimer = setTimeout(function(){
+    if (!net.connected) {
+      failed = true;
+      try { peer.destroy(); } catch(e){}
+      net.peer = null;
+      onFail();
+    }
+  }, strat.timeout);
 
   peer.on('open', function(id){
-    myPeerId = id;
-    if (timedOut) return;
-    console.log('[Peer] Client open, connecting to', pid);
-    var conn = peer.connect(pid, { reliable: true });
-    setupConn(conn);
-    conn.on('open', function(){
-      clearTimeout(tmr);
-      if (timedOut) return;
-      peerStatus = 'connected';
-      console.log('[Peer] Connected!');
-      conn.send({type:'hello', id: myPeerId, name: myName});
-      onReady(code);
-    });
+    net.myId = id;
+    console.log('[PeerJS] open', id);
+    if (net.isHost) {
+      net.active = true;
+      updateOverlayStatus('✅ Код активен, ждём друга...', '#70e090');
+      updateOverlayStrategy();
+    } else {
+      // Клиент — подключаемся к хосту
+      var target = peerIdFromCode(net.roomCode);
+      console.log('[PeerJS] connecting to', target);
+      var conn = peer.connect(target, { reliable: true });
+      setupPeerJSConn(conn, strat, onFail);
+    }
   });
+
+  peer.on('connection', function(conn){
+    setupPeerJSConn(conn, strat, onFail);
+  });
+
   peer.on('error', function(err){
-    clearTimeout(tmr);
-    console.warn('[Peer] Client error', err);
-    peerStatus = 'error';
-    if (err.type === 'peer-unavailable') onError('Комната не найдена. Проверь код.');
-    else onError('Ошибка: ' + (err.type || err.message));
+    console.warn('[PeerJS] error', err);
+    if (failed) return;
+    clearTimeout(failTimer);
+    failed = true;
+    try { peer.destroy(); } catch(e){}
+    net.peer = null;
+    onFail();
   });
 }
 
-function setupConn(conn){
+function setupPeerJSConn(conn, strat, onFail){
   conn.on('open', function(){
-    connections[conn.peer] = conn;
-    peerStatus = 'connected';
-    if (!isHost) conn.send({type:'hello', id: myPeerId, name: myName});
-    else if (game){ sendWorldState(); updateOverlayStatus(); }
+    console.log('[PeerJS] conn open with', conn.peer);
+    net.conns[conn.peer] = conn;
+    net.conn = conn;
+    net.connected = true;
+    net.active = true;
+    clearTimeout(net.timeoutHandle);
+    updateOverlayStatus('✅ Подключено! Игроков: ' + (Object.keys(net.conns).length + 1), '#70e090');
+    updateOverlayStrategy();
+    // Шлём hello
+    try { conn.send({ type: 'hello', id: net.myId, name: myName }); } catch(e){}
+    if (net.isHost && game) sendWorldState();
   });
-  conn.on('data', function(msg){ onNetMessage(msg, conn); });
+  conn.on('data', function(msg){ onPeerJSMessage(msg, conn); });
   conn.on('close', function(){
-    delete connections[conn.peer]; delete remotePlayers[conn.peer];
+    delete net.conns[conn.peer];
+    delete remotePlayers[conn.peer];
     if (game) showMsg('Игрок отключился');
   });
-  conn.on('error', function(e){ console.warn('conn error', e); });
+  conn.on('error', function(e){ console.warn('[PeerJS conn]', e); });
 }
 
-function broadcast(msg){
-  for (var id in connections){ try { connections[id].send(msg); } catch(e){} }
-}
-
-function onNetMessage(msg, conn){
+function onPeerJSMessage(msg, conn){
   if (!msg || !msg.type) return;
   if (!game && msg.type !== 'hello') return;
 
@@ -328,11 +543,8 @@ function onNetMessage(msg, conn){
       x: game ? game.player.x + 60 : 0, y: game ? game.player.y + 60 : 0,
       hp: 100, isDowned: false, downTimer: 0, hasBandage: false, lastSeen: performance.now()
     };
-    if (isHost && game){
-      sendWorldState();
-      showMsg(msg.name + ' подключился!');
-      updateOverlayStatus();
-    }
+    if (net.isHost && game) sendWorldState();
+    updateOverlayStatus('✅ Подключено! Игроков: ' + (Object.keys(net.conns).length + 1), '#70e090');
     return;
   }
   if (msg.type === 'player'){
@@ -343,7 +555,7 @@ function onNetMessage(msg, conn){
     r.hasBandage=p.hasBandage; r.name=p.name; r.lastSeen=performance.now();
     return;
   }
-  if (msg.type === 'world' && !isHost){
+  if (msg.type === 'world' && !net.isHost){
     var w = msg.data;
     game.time=w.time; game.isNight=w.isNight; game.weather=w.weather;
     game.level=w.level; game.nightsSurvived=w.nightsSurvived;
@@ -353,61 +565,54 @@ function onNetMessage(msg, conn){
     if (w.msg){ game.message=w.msg; game.messageTimer=2.2; }
     return;
   }
-  if (msg.type === 'interact-req' && isHost && game){
+  if (msg.type === 'interact' && net.isHost && game){
     var fake = { x: msg.x, y: msg.y, r: 14 };
     performInteract(fake, msg.id);
     return;
   }
-  if (msg.type === 'revive-target'){
-    if (msg.targetId === myPeerId && game.player.isDowned){
+  if (msg.type === 'revive'){
+    if (msg.targetId === net.myId && game.player.isDowned){
       game.player.isDowned = false; game.player.downTimer = 0;
       game.stats.hp = 40; showMsg('Тебя оживили!');
     }
     return;
   }
-  if (msg.type === 'bandage-removed'){
+  if (msg.type === 'bandage'){
     if (game && game.bandages[msg.idx]) game.bandages.splice(msg.idx, 1);
     return;
   }
   if (msg.type === 'chat'){ showMsg(msg.text); }
 }
 
-function sendWorldState(){
-  if (!isHost || !game) return;
-  broadcast({ type:'world', data:{
-    time:game.time, isNight:game.isNight, weather:game.weather,
-    level:game.level, nightsSurvived:game.nightsSurvived,
-    dayDur:game.dayDur, nightDur:game.nightDur,
-    campfire:game.campfire, enemies:game.enemies,
-    resources:game.resources, bandages:game.bandages,
-    msg: game.messageTimer>0 ? game.message : null
-  }});
+// Универсальные сетевые функции
+function broadcastToAll(msg){
+  if (net.mode === 'peerjs'){
+    for (var id in net.conns) { try { net.conns[id].send(msg); } catch(e){} }
+  } else if (net.mode === 'trystero'){
+    // Trystero actions уже сами broadcast'ят
+  }
 }
-function sendPlayerState(){
-  if (!game) return;
-  broadcast({ type:'player', id: myPeerId, data:{
-    name: myName, x: game.player.x, y: game.player.y,
-    hp: game.stats.hp, isDowned: game.player.isDowned,
-    downTimer: game.player.downTimer, hasBandage: game.inv.hasBandage
-  }});
-}
+window.broadcastToAll = broadcastToAll;
 
-function updateOverlayStatus(){
-  var el = document.getElementById('overlayStatus');
-  if (!el) return;
-  var conns = Object.keys(connections).length;
-  if (isHost){
-    if (conns > 0) el.textContent = '✅ Игрок подключён (' + conns + ')';
-    else if (peerStatus === 'connecting') el.textContent = '⏳ Подключение к серверу...';
-    else if (peerStatus === 'waiting') el.textContent = '✅ Код активен. Ждём друга...';
-    else if (peerStatus === 'error') el.textContent = '❌ Ошибка сети. Попробуй другой слот.';
-  } else {
-    if (peerStatus === 'connected') el.textContent = '✅ Подключено!';
-    else el.textContent = '⏳ Подключение...';
+function sendPlayerState(){
+  if (!game || !net.active) return;
+  if (net.mode === 'peerjs'){
+    broadcastToAll({ type:'player', id: net.myId, data:{ name: myName, x: game.player.x, y: game.player.y, hp: game.stats.hp, isDowned: game.player.isDowned, downTimer: game.player.downTimer, hasBandage: game.inv.hasBandage } });
+  } else if (net.mode === 'trystero' && net.sendPlayer){
+    net.sendPlayer();
+  }
+}
+function sendWorldState(){
+  if (!game || !net.active || !net.isHost) return;
+  if (net.mode === 'peerjs'){
+    broadcastToAll({ type:'world', data:{ time:game.time, isNight:game.isNight, weather:game.weather, level:game.level, nightsSurvived:game.nightsSurvived, dayDur:game.dayDur, nightDur:game.nightDur, campfire:game.campfire, enemies:game.enemies, resources:game.resources, bandages:game.bandages, msg: game.messageTimer>0?game.message:null } });
+  } else if (net.mode === 'trystero' && net.sendWorld){
+    net.sendWorld();
   }
 }
 
 var myName = 'Игрок-' + Math.floor(Math.random()*9000+1000);
+var remotePlayers = {};
 
 window.go = function(action){
   switch(action){
@@ -433,17 +638,7 @@ function submitJoin(){
   var st = document.getElementById('coopJoinStatus');
   if (code.length !== 6){ st.textContent = 'Код должен быть 6 символов'; st.style.color='#e07070'; return; }
   st.textContent = 'Подключение...'; st.style.color='#e0d070';
-  joinRoom(code,
-    function(okCode){
-      st.textContent = 'Подключено!';
-      st.style.color='#70e090';
-      setTimeout(function(){ startGame('coop', 'join', okCode, 'client'); }, 400);
-    },
-    function(err){
-      st.textContent = err;
-      st.style.color='#e07070';
-    }
-  );
+  startGame('coop', 'join', code, 'client');
 }
 
 function buildSlots(container, type){
@@ -463,7 +658,9 @@ function buildSlots(container, type){
   }
 }
 
-// ===== ИГРА =====
+/* ============================================================
+   ИГРА
+   ============================================================ */
 var canvas, ctx, game=null, rafId=null, lastT=0, keys={};
 var keyMap={'w':'w','ц':'w','W':'w','Ц':'w','a':'a','ф':'a','A':'a','Ф':'a','s':'s','ы':'s','S':'s','Ы':'s','d':'d','в':'d','D':'d','В':'d','ArrowUp':'w','ArrowDown':'s','ArrowLeft':'a','ArrowRight':'d'};
 var WEATHER_NAMES={clear:'Ясно',rain:'Дождь',snow:'Снег',heatwave:'Жара'};
@@ -475,7 +672,6 @@ function startGame(type, slot, joinCode, role){
   resizeCanvas();
 
   var save = getSave(type, slot);
-  isHost = (role==='host');
   initGame(type, slot, joinCode, save, role);
 
   var pauseBox = document.getElementById('pauseCoopCode');
@@ -483,25 +679,17 @@ function startGame(type, slot, joinCode, role){
     pauseBox.style.display='block';
     document.getElementById('coopCodeText').textContent = game.coopCode;
 
-    // Показать оверлей с кодом сразу для хоста
-    if (isHost){
+    if (role === 'host'){
       var ov = document.getElementById('codeOverlay');
       document.getElementById('overlayCode').textContent = game.coopCode;
-      document.getElementById('overlayStatus').textContent = '⏳ Подключение к серверу...';
+      updateOverlayStatus('⏳ Подключение к серверу...', '#e0d070');
+      updateOverlayStrategy();
       ov.classList.add('active');
-
-      hostRoom(game.coopCode,
-        function(){
-          updateOverlayStatus();
-          document.getElementById('coopCodeText').textContent = game.coopCode + ' · ждём';
-        },
-        function(err){
-          document.getElementById('overlayStatus').textContent = '❌ ' + err;
-          document.getElementById('overlayStatus').style.color = '#e07070';
-        }
-      );
+      startNetworkCascade(game.coopCode, true);
     } else {
-      document.getElementById('coopCodeText').textContent = game.coopCode + ' (подключён)';
+      // клиент — уже подключён, каскад не нужен
+      startNetworkCascade(game.coopCode, false);
+      updateOverlayStatus('✅ Подключено!', '#70e090');
     }
   } else pauseBox.style.display='none';
 
@@ -631,7 +819,7 @@ function update(dt){
     if (g.campfire.life<=0){ g.campfire=null; showMsg('Костёр потух...'); }
   }
 
-  if (g.type!=='coop' || isHost) updateEnemies(dt);
+  if (g.type!=='coop' || net.isHost) updateEnemies(dt);
 
   for (var id in remotePlayers){
     var rp = remotePlayers[id];
@@ -661,14 +849,14 @@ function update(dt){
     }
   }
 
-  if (g.type==='coop' && isHost){
+  if (g.type==='coop' && net.isHost){
     var anyDowned = g.player.isDowned;
     for (var id in remotePlayers) if (remotePlayers[id].isDowned) anyDowned=true;
     if (anyDowned && g.bandages.length===0 && !g._bandageSpawned){
       g._bandageSpawned = true;
       spawnBandages();
       showMsg('Кто-то ранен! Ищите бинт!');
-      broadcast({type:'chat', text:'Кто-то ранен! Ищите бинт!'});
+      if (net.sendChat) net.sendChat('Кто-то ранен! Ищите бинт!');
     }
     if (!anyDowned) g._bandageSpawned = false;
   }
@@ -679,7 +867,7 @@ function update(dt){
 
   netTimer += dt;
   if (netTimer>0.05){ netTimer=0; sendPlayerState(); }
-  if (isHost){
+  if (net.isHost){
     worldTimer += dt;
     if (worldTimer>0.1){ worldTimer=0; sendWorldState(); }
   }
@@ -688,7 +876,7 @@ function update(dt){
   if (overlayStatusTimer > 0.8){
     overlayStatusTimer = 0;
     var ov = document.getElementById('codeOverlay');
-    if (ov && ov.classList.contains('active')) updateOverlayStatus();
+    if (ov && ov.classList.contains('active')) updateOverlayStrategy();
   }
 }
 
@@ -709,7 +897,7 @@ function onNightStart(){
   var g = game;
   if (g.nightsSurvived===0) showMsg('Ночь... Ходят слухи про Одноглазого козла...');
   else showMsg('Ночь ' + (g.nightsSurvived+1) + '. Нужен костёр!');
-  if (g.type!=='coop' || isHost){
+  if (g.type!=='coop' || net.isHost){
     var count = 3 + Math.floor(g.level*1.6);
     if (g.weather==='rain') count += 1;
     spawnEnemies(count);
@@ -807,11 +995,13 @@ function updateEnemies(dt){
   }
 }
 
-// ===== ВЗАИМОДЕЙСТВИЕ =====
+/* ============================================================
+   ВЗАИМОДЕЙСТВИЕ
+   ============================================================ */
 function performInteract(fromPlayer, requesterId){
   var g = game;
   var p = fromPlayer;
-  var isLocal = (!requesterId || requesterId === myPeerId);
+  var isLocal = (!requesterId || requesterId === net.myId);
   var inv = isLocal ? g.inv : null;
 
   for (var bi=g.bandages.length-1;bi>=0;bi--){
@@ -821,7 +1011,7 @@ function performInteract(fromPlayer, requesterId){
       if (isLocal) g.inv.hasBandage = true;
       g.bandages.splice(bi,1);
       if (isLocal) showMsg('Подобрал бинт');
-      broadcast({type:'bandage-removed', idx:bi});
+      if (net.sendBandage) net.sendBandage(bi);
       return;
     }
   }
@@ -852,18 +1042,18 @@ function interact(){
       var d = Math.hypot(rp.x-p.x, rp.y-p.y);
       if (d < 70 && g.inv.hasBandage){
         g.inv.hasBandage = false;
-        broadcast({type:'revive-target', targetId: id});
+        if (net.sendRevive) net.sendRevive(id);
         showMsg('Оживил ' + rp.name + '!');
         rp.isDowned = false; rp.downTimer = 0;
         return;
       }
     }
   }
-  if (g.type==='coop' && !isHost){
-    broadcast({type:'interact-req', id: myPeerId, x:p.x, y:p.y});
+  if (g.type==='coop' && !net.isHost){
+    if (net.sendInteract) net.sendInteract(p.x, p.y);
     return;
   }
-  performInteract(p, myPeerId);
+  performInteract(p, net.myId);
 }
 
 function eat(){ var g=game; if(!g||g.player.isDowned)return; if(g.inv.food>0){g.inv.food--;g.stats.hunger=Math.min(100,g.stats.hunger+30);showMsg('Поел');}else showMsg('Нет еды'); }
@@ -914,7 +1104,9 @@ function loop(t){
   rafId = requestAnimationFrame(loop);
 }
 
-// ===== ОТРИСОВКА =====
+/* ============================================================
+   ОТРИСОВКА
+   ============================================================ */
 function render(){
   var g=game, c=ctx, W=canvas.width, H=canvas.height;
   if (g.weather==='snow') c.fillStyle='#dde4ec';
@@ -1175,7 +1367,7 @@ function drawHint(c,g){
   }
   if (!best) return;
   var names = {tree:'Рубить',stone:'Камень',bush:'Ягоды',water:'Вода',coin:'Монета',bandage:'Бинт'};
-  var txt = (isTouch ? 'E — ' : 'E — ') + names[best.type];
+  var txt = 'E — ' + names[best.type];
   c.font='bold 14px Arial'; c.textAlign='center'; c.textBaseline='middle';
   var tw = c.measureText(txt).width;
   c.fillStyle='rgba(0,0,0,0.75)';
@@ -1216,7 +1408,6 @@ function drawHUD(c){
   c.fillStyle='#fff'; c.textAlign='left';
   c.fillText('Т:'+(t>0?'+':'')+Math.round(t),bx+5,ty+7);
 
-  // Инвентарь
   c.textAlign='right';
   var rx=W-10, iy=15;
   var lines=['Д:'+g.inv.wood,'К:'+g.inv.stone,'Е:'+g.inv.food,'В:'+g.inv.water,'💰'+g.inv.coins,'🪓'+(g.inv.hasAxe?'✓':'—'),'💊'+(g.inv.hasBandage?'✓':'—')];
@@ -1226,7 +1417,6 @@ function drawHUD(c){
     c.fillText(lines[i],rx-5,iy+i*18+8);
   }
 
-  // Время
   var cycle=g.dayDur+g.nightDur, tIn=g.time%cycle;
   var isNight = tIn>=g.dayDur;
   var label = isNight?'НОЧЬ':'ДЕНЬ';
@@ -1241,18 +1431,23 @@ function drawHUD(c){
   c.fillStyle='#ffd700';
   c.fillText('Ночь '+g.level+' · '+WEATHER_NAMES[g.weather],W/2,50);
 
-  // КОД КООПЕРАТИВА (виден всегда, если кооп)
   if (g.type==='coop'){
     var codeY = 62;
     c.fillStyle='rgba(0,0,0,0.75)';
-    c.fillRect(W/2-120, codeY, 240, 26);
+    c.fillRect(W/2-130, codeY, 260, 26);
     c.strokeStyle='#ffd700'; c.lineWidth=1.5;
-    c.strokeRect(W/2-120, codeY, 240, 26);
-    c.fillStyle='#ffd700'; c.font='bold 15px "Courier New", monospace';
+    c.strokeRect(W/2-130, codeY, 260, 26);
+    c.fillStyle='#ffd700'; c.font='bold 14px "Courier New", monospace';
     c.textAlign='center'; c.textBaseline='middle';
-    var conns = Object.keys(connections).length;
-    var status = isHost ? (conns>0 ? '· '+conns+' ✅' : '· ждём...') : '· OK';
+    var conns = Object.keys(net.conns).length || Object.keys(remotePlayers).length;
+    var status = net.isHost ? (net.connected ? '· '+conns+' ✅' : '· ждём...') : '· OK';
     c.fillText('КОД: ' + g.coopCode + ' ' + status, W/2, codeY + 13);
+    // Показываем текущий способ связи
+    if (net.strategyIdx >= 0){
+      c.font='10px Arial';
+      c.fillStyle='#888';
+      c.fillText(NET_STRATEGIES[net.strategyIdx].name, W/2, codeY + 38);
+    }
   }
 
   if (!isTouch){
@@ -1280,7 +1475,9 @@ function drawHUD(c){
   }
 }
 
-// ===== КЛАВИАТУРА =====
+/* ============================================================
+   УПРАВЛЕНИЕ
+   ============================================================ */
 document.addEventListener('keydown', function(e){
   if (e.key==='Escape'){
     if (currentScreen==='gameScreen' && game){ pauseGame(); e.preventDefault(); }
@@ -1303,7 +1500,6 @@ document.addEventListener('keyup', function(e){
   if (keyMap[e.key]) keys[keyMap[e.key]]=false;
 });
 
-// ===== ТАЧ =====
 function setupTouch(){
   var joystick = document.getElementById('joystick');
   var stick = joystick.querySelector('.stick');
@@ -1367,7 +1563,6 @@ function setupTouch(){
   bindBtn('btnPause', function(){ if(game && currentScreen==='gameScreen'){ pauseGame(); } });
 }
 
-// ===== СТАРТ =====
 buildSlots(document.getElementById('singleSlots'), 'single');
 buildSlots(document.getElementById('coopSlots'), 'coop');
 if (isTouch) setupTouch();
