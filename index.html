@@ -26,8 +26,27 @@
   .slot .num { font-size:28px; margin-bottom:6px; }
   .slot .info { font-size:12px; color:#888; line-height:1.4; }
   .slot .info b { color:#b0b0b0; display:block; margin-bottom:4px; }
-  .settings { background:#2a2a2a; border:1px solid #3a3a3a; border-radius:6px; padding:20px 24px; min-width:280px; max-width:90vw; margin-bottom:16px; }
-  .row { display:flex; justify-content:space-between; align-items:center; gap:16px; color:#c0c0c0; font-size:15px; }
+  .settings { background:#2a2a2a; border:1px solid #3a3a3a; border-radius:6px; padding:20px 24px; min-width:380px; max-width:92vw; margin-bottom:16px; }
+  .tabs { display:flex; gap:4px; margin-bottom:16px; }
+  .tab { flex:1; padding:10px; text-align:center; background:#1e1e1e; border:1px solid #333; border-radius:4px; cursor:pointer; font-size:14px; color:#888; transition:all .15s; }
+  .tab.active { background:#3a3a3a; color:#fff; border-color:#70c0ff; }
+  .tab:hover { background:#2a2a2a; }
+  .tab-panel { display:none; }
+  .tab-panel.active { display:block; }
+  .row { display:flex; justify-content:space-between; align-items:center; gap:16px; color:#c0c0c0; font-size:15px; padding:8px 0; }
+  .row span { flex:1; }
+  .row input[type=range] { width:180px; accent-color:#70c0ff; }
+  .row input[type=checkbox] { width:20px; height:20px; accent-color:#70c0ff; cursor:pointer; }
+  .row select { background:#111; color:#e0e0e0; border:1px solid #3a3a3a; padding:6px 10px; border-radius:4px; font-family:inherit; min-width:130px; }
+  .row .val { color:#70c0ff; font-weight:bold; min-width:45px; text-align:right; font-size:13px; }
+  .preset-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
+  .preset-btn { padding:14px 8px; background:#1e1e1e; border:2px solid #333; border-radius:6px; cursor:pointer; text-align:center; transition:all .15s; }
+  .preset-btn:hover { background:#2a2a2a; }
+  .preset-btn.active { border-color:#70c0ff; background:#1a2a3a; }
+  .preset-btn .name { font-size:14px; font-weight:bold; }
+  .preset-btn .desc { font-size:10px; color:#888; margin-top:4px; }
+  .preset-btn.active .name { color:#70c0ff; }
+
   .row input[type=text] { background:#111; color:#e0e0e0; border:1px solid #3a3a3a; padding:10px 12px; border-radius:4px; font-family:'Courier New',monospace; width:180px; text-align:center; letter-spacing:4px; font-size:18px; text-transform:uppercase; }
   #gameScreen { padding:0; }
   #gameCanvas { display:block; width:100%; height:100%; touch-action:none; cursor:crosshair; }
@@ -88,6 +107,10 @@
     h1 { font-size:34px; margin-bottom:20px; }
     .btn { min-width:220px; padding:14px 20px; font-size:16px; }
     .slot { width:120px; height:115px; }
+    .settings { min-width:0; width:92vw; padding:14px 16px; }
+    .preset-grid { grid-template-columns:1fr 1fr; }
+    .row { font-size:13px; }
+    .row input[type=range] { width:120px; }
     #codeOverlay .bigcode { font-size:34px; letter-spacing:6px; padding:16px 20px; }
     #hud .hint { display:none; }
     #hud .bars .bar { width:120px; height:14px; }
@@ -136,8 +159,40 @@
   <div class="screen" id="settingsScreen">
     <h2>Настройки</h2>
     <div class="settings">
-      <div class="row"><span>Чувствительность мыши</span><input type="range" id="sensRange" min="1" max="20" value="10"></div>
-      <div class="row"><span>Громкость</span><input type="range" min="0" max="100" value="70"></div>
+      <div class="tabs">
+        <div class="tab active" data-tab="controls">🎮 Управление</div>
+        <div class="tab" data-tab="graphics">🖥 Графика</div>
+        <div class="tab" data-tab="audio">🔊 Звук</div>
+      </div>
+
+      <!-- УПРАВЛЕНИЕ -->
+      <div class="tab-panel active" id="panel-controls">
+        <div class="row"><span>Чувствительность мыши</span><input type="range" id="setMouseSens" min="1" max="20" value="10"><span class="val" id="valMouseSens">10</span></div>
+        <div class="row"><span>Чувствительность тача</span><input type="range" id="setTouchSens" min="1" max="20" value="10"><span class="val" id="valTouchSens">10</span></div>
+        <div class="row"><span>Инверсия мыши по Y</span><input type="checkbox" id="setInvertY"></div>
+        <div class="row"><span>Инверсия мыши по X</span><input type="checkbox" id="setInvertX"></div>
+        <div class="row"><span>Угол обзора (FOV)</span><input type="range" id="setFov" min="60" max="110" value="75"><span class="val" id="valFov">75</span></div>
+      </div>
+
+      <!-- ГРАФИКА -->
+      <div class="tab-panel" id="panel-graphics">
+        <div class="preset-grid">
+          <div class="preset-btn" data-preset="low"><div class="name">Низкая</div><div class="desc">понос 🥲</div></div>
+          <div class="preset-btn" data-preset="medium"><div class="name">Средняя</div><div class="desc">терпимо</div></div>
+          <div class="preset-btn" data-preset="high"><div class="name">Высокая</div><div class="desc">красиво</div></div>
+          <div class="preset-btn" data-preset="ultra"><div class="name">Ультра</div><div class="desc">ИМБА 🔥</div></div>
+        </div>
+        <div class="row"><span>Дальность прорисовки</span><input type="range" id="setRenderDist" min="40" max="250" value="150"><span class="val" id="valRenderDist">150</span></div>
+        <div class="row"><span>Показывать FPS</span><input type="checkbox" id="setShowFps"></div>
+      </div>
+
+      <!-- ЗВУК -->
+      <div class="tab-panel" id="panel-audio">
+        <div class="row"><span>Общая громкость</span><input type="range" id="setMasterVol" min="0" max="100" value="70"><span class="val" id="valMasterVol">70</span></div>
+        <div class="row"><span>Звуки игры</span><input type="checkbox" id="setSfxOn" checked></div>
+        <div class="row"><span>Эмбиент (ветер/ночь)</span><input type="checkbox" id="setAmbientOn" checked></div>
+        <div class="row"><span>Тестовый звук</span><button class="btn" style="min-width:120px; margin:0; padding:8px 16px; font-size:14px;" onclick="testSound()">🔊 Проверить</button></div>
+      </div>
     </div>
     <button class="btn" onclick="go('back')">Назад</button>
   </div>
@@ -169,7 +224,8 @@
       <div class="msg" id="hudMsg"></div>
       <div class="crosshair" id="crosshair"><div class="dot"></div></div>
       <div class="clickHint" id="clickHint">🖱 Клик — обзор мышью</div>
-      <div class="hint">WASD — ход · SHIFT — бег · E — действие<br>R — есть · F — пить · 1 — костёр · 2 — топор · 3 — отдых · ESC — пауза</div>
+      <div class="hint" id="hudHint">WASD — ход · SHIFT — бег · E — действие<br>R — есть · F — пить · 1 — костёр · 2 — топор · 3 — отдых · ESC — пауза</div>
+      <div class="hint" id="hudFps" style="left:auto; right:15px; bottom:15px; display:none; font-family:monospace;">FPS: 0</div>
     </div>
     <div id="touchControls">
       <div id="joystick">
@@ -224,71 +280,394 @@
 
 var isTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
 
-var screens = {
-  mainMenu: document.getElementById('mainMenu'),
-  singleSaves: document.getElementById('singleSaves'),
-  coopSaves: document.getElementById('coopSaves'),
-  coopJoin: document.getElementById('coopJoin'),
-  settingsScreen: document.getElementById('settingsScreen'),
-  gameScreen: document.getElementById('gameScreen'),
-  pauseScreen: document.getElementById('pauseScreen'),
-  exitScreen: document.getElementById('exitScreen')
+/* ============================================================
+   НАСТРОЙКИ (загружаются/сохраняются в localStorage)
+   ============================================================ */
+var SETTINGS = {
+  mouseSens: 10,
+  touchSens: 10,
+  invertY: false,
+  invertX: false,
+  fov: 75,
+  preset: 'high',
+  renderDist: 150,
+  showFps: false,
+  masterVol: 70,
+  sfxOn: true,
+  ambientOn: true
 };
-var currentScreen=null, previousScreen=null, inGame=false;
+try {
+  var saved = localStorage.getItem('hunjub3d_settings');
+  if (saved) { var p = JSON.parse(saved); for (var k in p) if (SETTINGS.hasOwnProperty(k)) SETTINGS[k] = p[k]; }
+} catch(e){}
+function saveSettings(){ try { localStorage.setItem('hunjub3d_settings', JSON.stringify(SETTINGS)); } catch(e){} }
 
-function showScreen(n){
-  if (currentScreen && screens[currentScreen]) screens[currentScreen].classList.remove('active');
-  if (screens[n]) { screens[n].classList.add('active'); currentScreen=n; }
-  var tc = document.getElementById('touchControls');
-  if (tc) {
-    if (n === 'gameScreen' && isTouch) tc.classList.add('active');
-    else tc.classList.remove('active');
+var GRAPHICS_PRESETS = {
+  low: {
+    pixelRatio: 0.6, antialias: false, shadows: false,
+    fogNear: 25, fogFar: 55, particles: 0, grass: false,
+    treeDetail: 0, ambientIntensity: 0.55, shadowType: null
+  },
+  medium: {
+    pixelRatio: 1, antialias: false, shadows: false,
+    fogNear: 35, fogFar: 90, particles: 40, grass: false,
+    treeDetail: 1, ambientIntensity: 0.45, shadowType: null
+  },
+  high: {
+    pixelRatio: 1.5, antialias: true, shadows: true,
+    fogNear: 55, fogFar: 140, particles: 120, grass: true,
+    treeDetail: 2, ambientIntensity: 0.4, shadowType: 'basic'
+  },
+  ultra: {
+    pixelRatio: 2, antialias: true, shadows: true,
+    fogNear: 80, fogFar: 220, particles: 250, grass: true,
+    treeDetail: 3, ambientIntensity: 0.4, shadowType: 'pcfsoft'
   }
-  checkOrientation();
-  updateClickHint();
-  if (n !== 'gameScreen' && document.pointerLockElement) document.exitPointerLock();
+};
+function currentPreset(){ return GRAPHICS_PRESETS[SETTINGS.preset] || GRAPHICS_PRESETS.high; }
+
+/* ============================================================
+   ЗВУК (Web Audio API — процедурные звуки без файлов)
+   ============================================================ */
+var audioCtx = null;
+var ambientNodes = []; // активные узлы эмбиента
+
+function initAudio(){
+  if (audioCtx) return;
+  try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e){}
+}
+function ensureAudioReady(){
+  initAudio();
+  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+}
+function masterGainValue(){
+  return (SETTINGS.masterVol / 100) * (SETTINGS.sfxOn ? 1 : 0);
 }
 
-function checkOrientation(){
-  var rb = document.getElementById('rotateBanner');
-  if (!rb) return;
-  var isPortrait = window.innerHeight > window.innerWidth;
-  if (isTouch && isPortrait && currentScreen === 'gameScreen') rb.classList.add('active');
-  else rb.classList.remove('active');
-}
-window.addEventListener('orientationchange', function(){ setTimeout(checkOrientation, 200); });
-window.addEventListener('resize', checkOrientation);
+function playSound(type, opts){
+  if (!SETTINGS.sfxOn) return;
+  ensureAudioReady();
+  if (!audioCtx) return;
+  opts = opts || {};
+  var vol = (opts.vol !== undefined ? opts.vol : 1) * masterGainValue();
+  if (vol <= 0.001) return;
+  var t = audioCtx.currentTime;
+  var dest = audioCtx.destination;
 
-function updateClickHint(){
-  var ch = document.getElementById('clickHint');
-  var cr = document.getElementById('crosshair');
-  if (!ch) return;
-  if (isTouch){ ch.classList.add('hidden'); if (cr) cr.classList.remove('show'); return; }
-  if (currentScreen === 'gameScreen' && game && !game.paused && !document.pointerLockElement){
-    ch.classList.remove('hidden');
-    if (cr) cr.classList.remove('show');
-  } else if (currentScreen === 'gameScreen' && document.pointerLockElement){
-    ch.classList.add('hidden');
-    if (cr) cr.classList.add('show');
-  } else {
-    ch.classList.add('hidden');
-    if (cr) cr.classList.remove('show');
+  function noiseBuffer(seconds, pow){
+    var len = Math.floor(audioCtx.sampleRate * seconds);
+    var buf = audioCtx.createBuffer(1, len, audioCtx.sampleRate);
+    var d = buf.getChannelData(0);
+    for (var i=0;i<len;i++) d[i] = (Math.random()*2-1) * Math.pow(1 - i/len, pow);
+    return buf;
+  }
+
+  switch(type){
+    case 'step': {
+      var src = audioCtx.createBufferSource();
+      src.buffer = noiseBuffer(0.06, 3);
+      var g = audioCtx.createGain(); g.gain.value = 0.15 * vol;
+      var filter = audioCtx.createBiquadFilter();
+      filter.type = 'lowpass'; filter.frequency.value = 800;
+      src.connect(filter); filter.connect(g); g.connect(dest);
+      src.start(t);
+      break;
+    }
+    case 'chop': {
+      var o = audioCtx.createOscillator(); var g2 = audioCtx.createGain();
+      o.type = 'triangle';
+      o.frequency.setValueAtTime(200, t);
+      o.frequency.exponentialRampToValueAtTime(55, t + 0.18);
+      g2.gain.setValueAtTime(0.3 * vol, t);
+      g2.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
+      o.connect(g2); g2.connect(dest);
+      o.start(t); o.stop(t + 0.25);
+      break;
+    }
+    case 'pickup': {
+      var o2 = audioCtx.createOscillator(); var g3 = audioCtx.createGain();
+      o2.type = 'sine';
+      o2.frequency.setValueAtTime(880, t);
+      o2.frequency.exponentialRampToValueAtTime(1500, t + 0.08);
+      g3.gain.setValueAtTime(0.18 * vol, t);
+      g3.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+      o2.connect(g3); g3.connect(dest);
+      o2.start(t); o2.stop(t + 0.16);
+      break;
+    }
+    case 'coin': {
+      var o3 = audioCtx.createOscillator(); var g4 = audioCtx.createGain();
+      o3.type = 'square';
+      o3.frequency.setValueAtTime(1200, t);
+      o3.frequency.setValueAtTime(1600, t + 0.05);
+      g4.gain.setValueAtTime(0.12 * vol, t);
+      g4.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+      o3.connect(g4); g4.connect(dest);
+      o3.start(t); o3.stop(t + 0.13);
+      break;
+    }
+    case 'eat': {
+      for (var i=0;i<3;i++){
+        var s = audioCtx.createBufferSource();
+        s.buffer = noiseBuffer(0.08, 2);
+        var gn = audioCtx.createGain(); gn.gain.value = 0.2 * vol;
+        var bp = audioCtx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1200;
+        s.connect(bp); bp.connect(gn); gn.connect(dest);
+        s.start(t + i*0.09);
+      }
+      break;
+    }
+    case 'drink': {
+      var o5 = audioCtx.createOscillator(); var g6 = audioCtx.createGain();
+      o5.type = 'sine';
+      o5.frequency.setValueAtTime(320, t);
+      o5.frequency.linearRampToValueAtTime(160, t + 0.2);
+      g6.gain.setValueAtTime(0.22 * vol, t);
+      g6.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+      o5.connect(g6); g6.connect(dest);
+      o5.start(t); o5.stop(t + 0.26);
+      break;
+    }
+    case 'hit': {
+      var o7 = audioCtx.createOscillator(); var g8 = audioCtx.createGain();
+      o7.type = 'sawtooth';
+      o7.frequency.setValueAtTime(130, t);
+      o7.frequency.exponentialRampToValueAtTime(40, t + 0.25);
+      g8.gain.setValueAtTime(0.35 * vol, t);
+      g8.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+      o7.connect(g8); g8.connect(dest);
+      o7.start(t); o7.stop(t + 0.3);
+      break;
+    }
+    case 'night': {
+      var o9 = audioCtx.createOscillator(); var g10 = audioCtx.createGain();
+      o9.type = 'sine';
+      o9.frequency.setValueAtTime(240, t);
+      o9.frequency.exponentialRampToValueAtTime(90, t + 1.6);
+      g10.gain.setValueAtTime(0.001, t);
+      g10.gain.linearRampToValueAtTime(0.28 * vol, t + 0.4);
+      g10.gain.linearRampToValueAtTime(0.001, t + 2.0);
+      o9.connect(g10); g10.connect(dest);
+      o9.start(t); o9.stop(t + 2.0);
+      break;
+    }
+    case 'day': {
+      var notes = [523, 659, 784, 1047];
+      notes.forEach(function(freq, idx){
+        var o10 = audioCtx.createOscillator(); var g11 = audioCtx.createGain();
+        o10.type = 'sine'; o10.frequency.value = freq;
+        var start = t + idx*0.1;
+        g11.gain.setValueAtTime(0.001, start);
+        g11.gain.exponentialRampToValueAtTime(0.22 * vol, start + 0.03);
+        g11.gain.exponentialRampToValueAtTime(0.001, start + 0.4);
+        o10.connect(g11); g11.connect(dest);
+        o10.start(start); o10.stop(start + 0.5);
+      });
+      break;
+    }
+    case 'enemy': {
+      var o11 = audioCtx.createOscillator(); var g12 = audioCtx.createGain();
+      o11.type = 'sawtooth';
+      o11.frequency.setValueAtTime(95, t);
+      o11.frequency.linearRampToValueAtTime(150, t + 0.3);
+      o11.frequency.linearRampToValueAtTime(70, t + 0.5);
+      g12.gain.setValueAtTime(0.3 * vol, t);
+      g12.gain.linearRampToValueAtTime(0.001, t + 0.55);
+      o11.connect(g12); g12.connect(dest);
+      o11.start(t); o11.stop(t + 0.55);
+      break;
+    }
+    case 'boss': {
+      var o12 = audioCtx.createOscillator(); var g13 = audioCtx.createGain();
+      o12.type = 'sawtooth';
+      o12.frequency.setValueAtTime(70, t);
+      o12.frequency.linearRampToValueAtTime(45, t + 0.6);
+      o12.frequency.linearRampToValueAtTime(90, t + 1.2);
+      g13.gain.setValueAtTime(0.4 * vol, t);
+      g13.gain.linearRampToValueAtTime(0.001, t + 1.3);
+      o12.connect(g13); g13.connect(dest);
+      o12.start(t); o12.stop(t + 1.3);
+      break;
+    }
+    case 'fire': {
+      var s2 = audioCtx.createBufferSource();
+      s2.buffer = noiseBuffer(0.05, 4);
+      var g14 = audioCtx.createGain(); g14.gain.value = 0.08 * vol;
+      var lp = audioCtx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 2000;
+      s2.connect(lp); lp.connect(g14); g14.connect(dest);
+      s2.start(t);
+      break;
+    }
+    case 'death': {
+      var o13 = audioCtx.createOscillator(); var g15 = audioCtx.createGain();
+      o13.type = 'triangle';
+      o13.frequency.setValueAtTime(220, t);
+      o13.frequency.exponentialRampToValueAtTime(40, t + 1.4);
+      g15.gain.setValueAtTime(0.3 * vol, t);
+      g15.gain.exponentialRampToValueAtTime(0.001, t + 1.5);
+      o13.connect(g15); g15.connect(dest);
+      o13.start(t); o13.stop(t + 1.5);
+      break;
+    }
+    case 'revive': {
+      var notes2 = [523, 784, 1047];
+      notes2.forEach(function(freq, idx){
+        var o14 = audioCtx.createOscillator(); var g16 = audioCtx.createGain();
+        o14.type = 'sine'; o14.frequency.value = freq;
+        var start = t + idx*0.12;
+        g16.gain.setValueAtTime(0.001, start);
+        g16.gain.exponentialRampToValueAtTime(0.25 * vol, start + 0.03);
+        g16.gain.exponentialRampToValueAtTime(0.001, start + 0.5);
+        o14.connect(g16); g16.connect(dest);
+        o14.start(start); o14.stop(start + 0.55);
+      });
+      break;
+    }
   }
 }
 
-function getSave(t,s){ try{ var r=localStorage.getItem('hunjub3d_'+t+'_'+s); return r?JSON.parse(r):null;}catch(e){return null;} }
-function setSave(t,s,d){ try{ localStorage.setItem('hunjub3d_'+t+'_'+s,JSON.stringify(d)); }catch(e){} }
-function genCode(){
-  var ch='ABCDEFGHJKLMNPQRSTUVWXYZ23456789', s='';
-  for (var i=0;i<6;i++) s += ch.charAt(Math.floor(Math.random()*ch.length));
-  return s;
+// ===== ЭМБИЕНТ (ветер, ночной гул) =====
+var ambientCtxNode = null, ambientFilter = null, ambientGain = null, ambientOsc = null;
+function startAmbient(){
+  if (ambientCtxNode) return;
+  if (!SETTINGS.ambientOn) return;
+  ensureAudioReady();
+  if (!audioCtx) return;
+  // постоянный ветер = отфильтрованный шум
+  var bufSize = audioCtx.sampleRate * 3;
+  var buf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
+  var d = buf.getChannelData(0);
+  for (var i=0;i<bufSize;i++) d[i] = (Math.random()*2-1) * 0.5;
+  var src = audioCtx.createBufferSource();
+  src.buffer = buf; src.loop = true;
+  ambientFilter = audioCtx.createBiquadFilter();
+  ambientFilter.type = 'lowpass'; ambientFilter.frequency.value = 400;
+  ambientGain = audioCtx.createGain();
+  ambientGain.gain.value = 0.02 * (SETTINGS.masterVol / 100);
+  src.connect(ambientFilter); ambientFilter.connect(ambientGain); ambientGain.connect(audioCtx.destination);
+  src.start();
+  ambientCtxNode = src;
+
+  // ночной низкий гул
+  ambientOsc = audioCtx.createOscillator();
+  ambientOsc.type = 'sine';
+  ambientOsc.frequency.value = 55;
+  var oscGain = audioCtx.createGain();
+  oscGain.gain.value = 0; // включим ночью
+  ambientOsc.connect(oscGain); oscGain.connect(audioCtx.destination);
+  ambientOsc.start();
+  ambientOsc._gain = oscGain;
 }
-window.hideCodeOverlay = function(){
-  var o = document.getElementById('codeOverlay');
-  if (o) o.classList.remove('active');
+function stopAmbient(){
+  try { if (ambientCtxNode) ambientCtxNode.stop(); } catch(e){}
+  try { if (ambientOsc) ambientOsc.stop(); } catch(e){}
+  ambientCtxNode = null; ambientOsc = null;
+}
+function updateAmbient(){
+  if (!ambientCtxNode) return;
+  if (!game) return;
+  var vol = SETTINGS.ambientOn ? (SETTINGS.masterVol / 100) : 0;
+  if (ambientGain) ambientGain.gain.value = 0.02 * vol * (game.weather === 'rain' ? 3 : 1);
+  if (ambientOsc && ambientOsc._gain){
+    var nightTarget = game.isNight ? 0.06 * vol : 0;
+    ambientOsc._gain.gain.value += (nightTarget - ambientOsc._gain.gain.value) * 0.05;
+  }
+}
+window.testSound = function(){
+  ensureAudioReady();
+  playSound('pickup', { vol: 1.5 });
+  setTimeout(function(){ playSound('chop'); }, 200);
+  setTimeout(function(){ playSound('coin'); }, 450);
 };
 
-/* ===== СЕТЬ (все каналы) ===== */
+/* ============================================================
+   УПРАВЛЕНИЕ НАСТРОЙКАМИ (UI)
+   ============================================================ */
+function bindSettingsUI(){
+  function bindRange(id, key, valId, transform){
+    var el = document.getElementById(id); var valEl = document.getElementById(valId);
+    if (!el) return;
+    el.value = SETTINGS[key];
+    if (valEl) valEl.textContent = transform ? transform(SETTINGS[key]) : SETTINGS[key];
+    el.addEventListener('input', function(){
+      var v = parseInt(el.value, 10);
+      SETTINGS[key] = v;
+      if (valEl) valEl.textContent = transform ? transform(v) : v;
+      saveSettings();
+      applyLiveSettings();
+    });
+  }
+  function bindCheck(id, key){
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.checked = SETTINGS[key];
+    el.addEventListener('change', function(){
+      SETTINGS[key] = el.checked;
+      saveSettings();
+      applyLiveSettings();
+    });
+  }
+  bindRange('setMouseSens', 'mouseSens', 'valMouseSens');
+  bindRange('setTouchSens', 'touchSens', 'valTouchSens');
+  bindRange('setFov', 'fov', 'valFov');
+  bindRange('setRenderDist', 'renderDist', 'valRenderDist');
+  bindRange('setMasterVol', 'masterVol', 'valMasterVol');
+  bindCheck('setInvertY', 'invertY');
+  bindCheck('setInvertX', 'invertX');
+  bindCheck('setShowFps', 'showFps');
+  bindCheck('setSfxOn', 'sfxOn');
+  bindCheck('setAmbientOn', 'ambientOn');
+
+  // пресеты графики
+  document.querySelectorAll('.preset-btn').forEach(function(btn){
+    var p = btn.dataset.preset;
+    btn.classList.toggle('active', SETTINGS.preset === p);
+    btn.addEventListener('click', function(){
+      SETTINGS.preset = p;
+      document.querySelectorAll('.preset-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.preset === p); });
+      saveSettings();
+      applyLiveSettings();
+    });
+  });
+
+  // табы
+  document.querySelectorAll('.tab').forEach(function(tab){
+    tab.addEventListener('click', function(){
+      var name = tab.dataset.tab;
+      document.querySelectorAll('.tab').forEach(function(t){ t.classList.toggle('active', t === tab); });
+      document.querySelectorAll('.tab-panel').forEach(function(p){ p.classList.toggle('active', p.id === 'panel-' + name); });
+    });
+  });
+}
+function applyLiveSettings(){
+  // FOV
+  if (camera){
+    camera.fov = SETTINGS.fov;
+    camera.updateProjectionMatrix();
+  }
+  // FPS-плашка
+  var fpsEl = document.getElementById('hudFps');
+  if (fpsEl) fpsEl.style.display = SETTINGS.showFps ? 'block' : 'none';
+  // Туман
+  if (scene && scene.fog){
+    var pr = currentPreset();
+    scene.fog.near = pr.fogNear;
+    scene.fog.far = pr.fogFar;
+  }
+  // Ambient громкость
+  if (ambientGain) ambientGain.gain.value = SETTINGS.ambientOn ? (0.02 * SETTINGS.masterVol/100) : 0;
+  // Если меняли графику — надо перестроить сцену
+  if (renderer && game){
+    var pr2 = currentPreset();
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, pr2.pixelRatio));
+    // Пересобираем сцену для применения treeDetail
+    rebuildScene();
+  }
+}
+
+/* ============================================================
+   СЕТЬ (сокращённая, как раньше)
+   ============================================================ */
 var TRYSTERO_STRATS = [
   { name: 'MQTT',    url: 'https://esm.sh/trystero@0.21.5/mqtt',    mod: null },
   { name: 'Nostr',   url: 'https://esm.sh/trystero@0.21.5',         mod: null },
@@ -297,15 +676,15 @@ var TRYSTERO_STRATS = [
 ];
 var TRYSTERO_LOADED = false;
 var PEERJS_HOSTS = [
-  { host: '0.peerjs.com',                port: 443, secure: true, path: '/' },
-  { host: 'peerjs.92k.de',               port: 443, secure: true, path: '/' },
+  { host: '0.peerjs.com', port: 443, secure: true, path: '/' },
+  { host: 'peerjs.92k.de', port: 443, secure: true, path: '/' },
   { host: 'peerjs-server.herokuapp.com', port: 443, secure: true, path: '/' }
 ];
 var ICE_SERVERS = [
   { urls: 'stun:stun.l.google.com:19302' },
   { urls: 'stun:stun1.l.google.com:19302' },
   { urls: 'stun:stun.cloudflare.com:3478' },
-  { urls: 'turn:openrelay.metered.ca:80',  username: 'openrelayproject', credential: 'openrelayproject' },
+  { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
   { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
   { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' }
 ];
@@ -313,38 +692,28 @@ var rtcConfig = { iceServers: ICE_SERVERS };
 
 var net = { active:false, connected:false, isHost:false,
   myId: 'me_' + Math.random().toString(36).slice(2,8),
-  roomCode: null, actions: {}, peer: null, peerConns: {},
-  strategyLabel: '', trysteroRooms: []
+  roomCode: null, actions: {}, peer: null, peerConns: {}, strategyLabel: '', trysteroRooms: []
 };
 var remotePlayers = {};
 var myName = 'Игрок-' + Math.floor(Math.random()*9000+1000);
 
-function updateOverlayStatus(txt, color){
-  var el = document.getElementById('overlayStatus'); if (!el) return;
-  el.textContent = txt; if (color) el.style.color = color;
-}
-function updateOverlayStrategy(txt){
-  var el = document.getElementById('overlayStrategy'); if (!el) return;
-  el.textContent = txt || '';
-}
+function updateOverlayStatus(txt, color){ var el = document.getElementById('overlayStatus'); if (!el) return; el.textContent = txt; if (color) el.style.color = color; }
+function updateOverlayStrategy(txt){ var el = document.getElementById('overlayStrategy'); if (!el) return; el.textContent = txt || ''; }
+
 function closeNetwork(){
   net.trysteroRooms.forEach(function(r){ try { r.room.leave(); } catch(e){} });
   net.trysteroRooms = [];
   if (net.peer) { try { net.peer.destroy(); } catch(e){} net.peer = null; }
   for (var id in net.peerConns) { try { net.peerConns[id].close(); } catch(e){} }
-  net.peerConns = {};
-  net.active=false; net.connected=false;
-  net.actions = {}; net.strategyLabel = '';
-  remotePlayers = {};
+  net.peerConns = {}; net.active=false; net.connected=false;
+  net.actions = {}; net.strategyLabel = ''; remotePlayers = {};
   for (var i = remoteMeshes.length - 1; i >= 0; i--){ scene.remove(remoteMeshes[i].group); remoteMeshes.splice(i, 1); }
 }
 function loadTrystero(cb){
   if (TRYSTERO_LOADED) { cb(); return; }
   var remaining = TRYSTERO_STRATS.length;
   var done = function(){ remaining--; if (remaining===0){ TRYSTERO_LOADED=true; cb(); } };
-  TRYSTERO_STRATS.forEach(function(s){
-    import(s.url).then(function(mod){ s.mod = mod; done(); }).catch(function(){ done(); });
-  });
+  TRYSTERO_STRATS.forEach(function(s){ import(s.url).then(function(mod){ s.mod = mod; done(); }).catch(function(){ done(); }); });
 }
 function startNetwork(code, isHost){
   closeNetwork();
@@ -368,70 +737,45 @@ function startNetwork(code, isHost){
   });
 }
 function setupTrysteroRoom(stratName, room){
-  var actPlayer   = room.makeAction('player');
-  var actWorld    = room.makeAction('world');
-  var actInteract = room.makeAction('interact');
-  var actRevive   = room.makeAction('revive');
-  var actBandage  = room.makeAction('bandage');
-  var actChat     = room.makeAction('chat');
+  var aP = room.makeAction('player'), aW = room.makeAction('world'),
+      aI = room.makeAction('interact'), aR = room.makeAction('revive'),
+      aB = room.makeAction('bandage'), aC = room.makeAction('chat');
   room.onPeerJoin = function(peerId){
     if (!net.connected){
       net.active=true; net.connected=true; net.strategyLabel = stratName;
       net.actions = {
-        sendPlayer:   function(d){ try { actPlayer.send(d); } catch(e){} },
-        sendWorld:    function(d){ try { actWorld.send(d); } catch(e){} },
-        sendInteract: function(d){ try { actInteract.send(d); } catch(e){} },
-        sendRevive:   function(d){ try { actRevive.send(d); } catch(e){} },
-        sendBandage:  function(d){ try { actBandage.send(d); } catch(e){} },
-        sendChat:     function(d){ try { actChat.send(d); } catch(e){} }
+        sendPlayer: function(d){ try { aP.send(d); } catch(e){} },
+        sendWorld: function(d){ try { aW.send(d); } catch(e){} },
+        sendInteract: function(d){ try { aI.send(d); } catch(e){} },
+        sendRevive: function(d){ try { aR.send(d); } catch(e){} },
+        sendBandage: function(d){ try { aB.send(d); } catch(e){} },
+        sendChat: function(d){ try { aC.send(d); } catch(e){} }
       };
       updateOverlayStatus('✅ Подключено через ' + stratName + '!', '#70e090');
       updateOverlayStrategy('Активный канал: ' + stratName);
     }
     if (!remotePlayers[peerId]){
-      remotePlayers[peerId] = { id:peerId, name:'Игрок', x: game?game.player.x+3:0, z: game?game.player.z+3:0,
-        hp:100, isDowned:false, downTimer:0, hasBandage:false, lastSeen:performance.now(), yaw:0 };
+      remotePlayers[peerId] = { id:peerId, name:'Игрок', x: game?game.player.x+3:0, z: game?game.player.z+3:0, hp:100, isDowned:false, downTimer:0, hasBandage:false, lastSeen:performance.now(), yaw:0 };
       addRemoteMesh(peerId);
     }
     if (net.isHost && game) sendWorldState();
   };
-  room.onPeerLeave = function(peerId){
-    removeRemoteMesh(peerId); delete remotePlayers[peerId];
-    if (game) showMsg('Игрок отключился');
-  };
-  actPlayer.onMessage = function(data, ctx){
-    var peerId = (ctx && ctx.peerId) || (data && data._peer);
+  room.onPeerLeave = function(peerId){ removeRemoteMesh(peerId); delete remotePlayers[peerId]; if (game) showMsg('Игрок отключился'); };
+  aP.onMessage = function(d, ctx){
+    var id = (ctx && ctx.peerId) || (d && d._peer);
     if (!game) return;
-    if (!remotePlayers[peerId]){
-      remotePlayers[peerId] = { id:peerId, name:'Игрок', x:data.x, z:data.z, hp:100, isDowned:false, downTimer:0, hasBandage:false, lastSeen:performance.now(), yaw:0 };
-      addRemoteMesh(peerId);
-    }
-    var rp = remotePlayers[peerId];
-    rp.x=data.x; rp.z=data.z; rp.yaw=data.yaw||0; rp.hp=data.hp; rp.isDowned=data.isDowned;
-    rp.downTimer=data.downTimer; rp.hasBandage=data.hasBandage;
-    if (data.name) rp.name=data.name;
+    if (!remotePlayers[id]){ remotePlayers[id]={id:id,name:'Игрок',x:d.x,z:d.z,hp:100,isDowned:false,downTimer:0,hasBandage:false,lastSeen:performance.now(),yaw:0}; addRemoteMesh(id); }
+    var rp = remotePlayers[id];
+    rp.x=d.x; rp.z=d.z; rp.yaw=d.yaw||0; rp.hp=d.hp; rp.isDowned=d.isDowned;
+    rp.downTimer=d.downTimer; rp.hasBandage=d.hasBandage;
+    if (d.name) rp.name=d.name;
     rp.lastSeen=performance.now();
   };
-  actWorld.onMessage = function(w, ctx){
-    if (!game || net.isHost) return;
-    game.time=w.time; game.isNight=w.isNight; game.weather=w.weather;
-    game.level=w.level; game.nightsSurvived=w.nightsSurvived;
-    game.dayDur=w.dayDur; game.nightDur=w.nightDur;
-    game.campfire=w.campfire; game.enemies=w.enemies;
-    game.resources=w.resources; game.bandages=w.bandages||[];
-    if (w.msg) showMsg(w.msg);
-    rebuildScene();
-  };
-  actInteract.onMessage = function(d, ctx){ if (game && net.isHost) performInteract(d.x, d.z, ctx && ctx.peerId); };
-  actRevive.onMessage = function(d, ctx){
-    if (!game) return;
-    if (d.targetId === net.myId && game.player.isDowned){
-      game.player.isDowned = false; game.player.downTimer = 0;
-      game.stats.hp = 40; showMsg('Тебя оживили!');
-    }
-  };
-  actBandage.onMessage = function(d){ if (game && game.bandages[d.idx]){ game.bandages.splice(d.idx,1); rebuildBandages(); } };
-  actChat.onMessage = function(d){ if (d && d.text) showMsg(d.text); };
+  aW.onMessage = function(w){ if (!game || net.isHost) return; game.time=w.time; game.isNight=w.isNight; game.weather=w.weather; game.level=w.level; game.nightsSurvived=w.nightsSurvived; game.dayDur=w.dayDur; game.nightDur=w.nightDur; game.campfire=w.campfire; game.enemies=w.enemies; game.resources=w.resources; game.bandages=w.bandages||[]; if (w.msg) showMsg(w.msg); rebuildScene(); };
+  aI.onMessage = function(d, ctx){ if (game && net.isHost) performInteract(d.x, d.z, ctx && ctx.peerId); };
+  aR.onMessage = function(d){ if (!game) return; if (d.targetId === net.myId && game.player.isDowned){ game.player.isDowned=false; game.player.downTimer=0; game.stats.hp=40; showMsg('Тебя оживили!'); playSound('revive'); } };
+  aB.onMessage = function(d){ if (game && game.bandages[d.idx]){ game.bandages.splice(d.idx,1); rebuildBandages(); } };
+  aC.onMessage = function(d){ if (d && d.text) showMsg(d.text); };
 }
 function tryPeerJSCascade(idx){
   if (idx >= PEERJS_HOSTS.length) return;
@@ -443,18 +787,12 @@ function tryPeerJSCascade(idx){
   catch(e){ tryPeerJSCascade(idx+1); return; }
   net.peer = peer;
   var failed = false;
-  var tmr = setTimeout(function(){
-    if (!net.connected){ failed = true; try { peer.destroy(); } catch(e){} net.peer = null; tryPeerJSCascade(idx+1); }
-  }, 9000);
+  var tmr = setTimeout(function(){ if (!net.connected){ failed = true; try { peer.destroy(); } catch(e){} net.peer = null; tryPeerJSCascade(idx+1); } }, 9000);
   peer.on('open', function(id){
     net.myId = id;
     if (net.isHost){
       net.active = true;
-      if (!net.connected) {
-        net.strategyLabel = net.strategyLabel || ('PeerJS ' + h.host);
-        updateOverlayStatus('✅ Код активен. Ждём друга...', '#70e090');
-        updateOverlayStrategy('Активный канал: PeerJS ' + h.host);
-      }
+      if (!net.connected){ net.strategyLabel = net.strategyLabel || ('PeerJS ' + h.host); updateOverlayStatus('✅ Код активен. Ждём друга...', '#70e090'); updateOverlayStrategy('Активный канал: PeerJS ' + h.host); }
     } else {
       var target = 'hunjub3d-' + net.roomCode.toLowerCase();
       var conn = peer.connect(target, { reliable: true });
@@ -462,89 +800,88 @@ function tryPeerJSCascade(idx){
     }
   });
   peer.on('connection', function(conn){ setupPeerConn(conn, idx); });
-  peer.on('error', function(err){ if (failed) return; clearTimeout(tmr); failed = true; try { peer.destroy(); } catch(e){} net.peer = null; tryPeerJSCascade(idx+1); });
+  peer.on('error', function(){ if (failed) return; clearTimeout(tmr); failed = true; try { peer.destroy(); } catch(e){} net.peer = null; tryPeerJSCascade(idx+1); });
 }
 function setupPeerConn(conn, idx){
   conn.on('open', function(){
-    net.peerConns[conn.peer] = conn;
-    net.active = true; net.connected = true;
+    net.peerConns[conn.peer] = conn; net.active = true; net.connected = true;
     net.strategyLabel = net.strategyLabel || ('PeerJS #' + (idx+1));
     updateOverlayStatus('✅ Подключено! Игроков: ' + (Object.keys(net.peerConns).length+1), '#70e090');
     try { conn.send({ type:'hello', id: net.myId, name: myName }); } catch(e){}
     if (net.isHost && game) sendWorldState();
   });
   conn.on('data', function(msg){ onPeerMsg(msg); });
-  conn.on('close', function(){
-    removeRemoteMesh(conn.peer); delete net.peerConns[conn.peer]; delete remotePlayers[conn.peer];
-    if (game) showMsg('Игрок отключился');
-  });
+  conn.on('close', function(){ removeRemoteMesh(conn.peer); delete net.peerConns[conn.peer]; delete remotePlayers[conn.peer]; if (game) showMsg('Игрок отключился'); });
 }
 function onPeerMsg(msg){
   if (!msg || !msg.type) return;
   if (!game && msg.type !== 'hello') return;
-  if (msg.type === 'hello'){
-    remotePlayers[msg.id] = { id:msg.id, name:msg.name||'Игрок', x: game?game.player.x+3:0, z: game?game.player.z+3:0,
-      hp:100, isDowned:false, downTimer:0, hasBandage:false, lastSeen:performance.now(), yaw:0 };
-    addRemoteMesh(msg.id);
-    if (net.isHost && game) sendWorldState();
-    return;
-  }
-  if (msg.type === 'player'){
-    var p = msg.data;
-    if (!remotePlayers[msg.id]){ remotePlayers[msg.id]={id:msg.id,name:p.name,x:p.x,z:p.z,hp:p.hp,isDowned:p.isDowned,downTimer:p.downTimer,hasBandage:p.hasBandage,lastSeen:performance.now(),yaw:p.yaw||0}; addRemoteMesh(msg.id); }
-    var r = remotePlayers[msg.id];
-    r.x=p.x; r.z=p.z; r.yaw=p.yaw||0; r.hp=p.hp; r.isDowned=p.isDowned;
-    r.downTimer=p.downTimer; r.hasBandage=p.hasBandage; r.name=p.name; r.lastSeen=performance.now();
-    return;
-  }
-  if (msg.type === 'world' && !net.isHost){
-    var w = msg.data;
-    game.time=w.time; game.isNight=w.isNight; game.weather=w.weather;
-    game.level=w.level; game.nightsSurvived=w.nightsSurvived;
-    game.dayDur=w.dayDur; game.nightDur=w.nightDur;
-    game.campfire=w.campfire; game.enemies=w.enemies;
-    game.resources=w.resources; game.bandages=w.bandages||[];
-    if (w.msg) showMsg(w.msg);
-    rebuildScene();
-    return;
-  }
+  if (msg.type === 'hello'){ remotePlayers[msg.id]={id:msg.id,name:msg.name||'Игрок',x:game?game.player.x+3:0,z:game?game.player.z+3:0,hp:100,isDowned:false,downTimer:0,hasBandage:false,lastSeen:performance.now(),yaw:0}; addRemoteMesh(msg.id); if (net.isHost && game) sendWorldState(); return; }
+  if (msg.type === 'player'){ var p=msg.data; if (!remotePlayers[msg.id]){ remotePlayers[msg.id]={id:msg.id,name:p.name,x:p.x,z:p.z,hp:p.hp,isDowned:p.isDowned,downTimer:p.downTimer,hasBandage:p.hasBandage,lastSeen:performance.now(),yaw:p.yaw||0}; addRemoteMesh(msg.id); } var r=remotePlayers[msg.id]; r.x=p.x; r.z=p.z; r.yaw=p.yaw||0; r.hp=p.hp; r.isDowned=p.isDowned; r.downTimer=p.downTimer; r.hasBandage=p.hasBandage; r.name=p.name; r.lastSeen=performance.now(); return; }
+  if (msg.type === 'world' && !net.isHost){ var w=msg.data; game.time=w.time; game.isNight=w.isNight; game.weather=w.weather; game.level=w.level; game.nightsSurvived=w.nightsSurvived; game.dayDur=w.dayDur; game.nightDur=w.nightDur; game.campfire=w.campfire; game.enemies=w.enemies; game.resources=w.resources; game.bandages=w.bandages||[]; if (w.msg) showMsg(w.msg); rebuildScene(); return; }
   if (msg.type === 'interact' && net.isHost && game){ performInteract(msg.x, msg.z, msg.id); return; }
-  if (msg.type === 'revive'){
-    if (msg.targetId === net.myId && game.player.isDowned){
-      game.player.isDowned = false; game.player.downTimer = 0;
-      game.stats.hp = 40; showMsg('Тебя оживили!');
-    }
-    return;
-  }
+  if (msg.type === 'revive'){ if (msg.targetId === net.myId && game.player.isDowned){ game.player.isDowned=false; game.player.downTimer=0; game.stats.hp=40; showMsg('Тебя оживили!'); playSound('revive'); } return; }
   if (msg.type === 'bandage'){ if (game && game.bandages[msg.idx]){ game.bandages.splice(msg.idx,1); rebuildBandages(); } return; }
   if (msg.type === 'chat'){ showMsg(msg.text); }
 }
 function sendPlayerState(){
   if (!game || !net.connected) return;
-  var d = { name: myName, x: game.player.x, z: game.player.z, yaw: game.player.yaw,
-    hp: game.stats.hp, isDowned: game.player.isDowned,
-    downTimer: game.player.downTimer, hasBandage: game.inv.hasBandage };
-  if (net.actions.sendPlayer){ net.actions.sendPlayer(d); }
+  var d = { name: myName, x: game.player.x, z: game.player.z, yaw: game.player.yaw, hp: game.stats.hp, isDowned: game.player.isDowned, downTimer: game.player.downTimer, hasBandage: game.inv.hasBandage };
+  if (net.actions.sendPlayer) net.actions.sendPlayer(d);
   else { for (var id in net.peerConns){ try { net.peerConns[id].send({ type:'player', id: net.myId, data: d }); } catch(e){} } }
 }
 function sendWorldState(){
   if (!game || !net.connected || !net.isHost) return;
-  var d = { time:game.time, isNight:game.isNight, weather:game.weather,
-    level:game.level, nightsSurvived:game.nightsSurvived,
-    dayDur:game.dayDur, nightDur:game.nightDur, campfire: game.campfire,
-    enemies: game.enemies.map(function(e){return {x:e.x,z:e.z,r:e.r,isBoss:e.isBoss,hp:e.hp};}),
-    resources: game.resources.map(function(r){return {type:r.type,x:r.x,z:r.z,r:r.r};}),
-    bandages: game.bandages.map(function(b){return {x:b.x,z:b.z,r:b.r};}),
-    msg: game.messageTimer>0?game.message:null };
-  if (net.actions.sendWorld){ net.actions.sendWorld(d); }
+  var d = { time:game.time, isNight:game.isNight, weather:game.weather, level:game.level, nightsSurvived:game.nightsSurvived, dayDur:game.dayDur, nightDur:game.nightDur, campfire: game.campfire, enemies: game.enemies.map(function(e){return {x:e.x,z:e.z,r:e.r,isBoss:e.isBoss,hp:e.hp};}), resources: game.resources.map(function(r){return {type:r.type,x:r.x,z:r.z,r:r.r};}), bandages: game.bandages.map(function(b){return {x:b.x,z:b.z,r:b.r};}), msg: game.messageTimer>0?game.message:null };
+  if (net.actions.sendWorld) net.actions.sendWorld(d);
   else { for (var id in net.peerConns){ try { net.peerConns[id].send({ type:'world', data: d }); } catch(e){} } }
 }
 function netInteract(x,z){ if (net.actions.sendInteract) net.actions.sendInteract({x:x,z:z}); else { for (var id in net.peerConns){ try { net.peerConns[id].send({type:'interact',x:x,z:z,id:net.myId}); } catch(e){} } } }
-function netRevive(tid){ if (net.actions.sendRevive) net.actions.sendRevive({targetId:tid}); else { for (var id in net.peerConns){ try { net.peerConns[id].send({type:'revive',targetId:tid}); } catch(e){} } } }
-function netBandage(idx){ if (net.actions.sendBandage) net.actions.sendBandage({idx:idx}); else { for (var id in net.peerConns){ try { net.peerConns[id].send({type:'bandage',idx:idx}); } catch(e){} } } }
-function netChat(text){ if (net.actions.sendChat) net.actions.sendChat({text:text}); else { for (var id in net.peerConns){ try { net.peerConns[id].send({type:'chat',text:text}); } catch(e){} } } }
+function netRevive(t){ if (net.actions.sendRevive) net.actions.sendRevive({targetId:t}); else { for (var id in net.peerConns){ try { net.peerConns[id].send({type:'revive',targetId:t}); } catch(e){} } } }
+function netBandage(i){ if (net.actions.sendBandage) net.actions.sendBandage({idx:i}); else { for (var id in net.peerConns){ try { net.peerConns[id].send({type:'bandage',idx:i}); } catch(e){} } } }
+function netChat(t){ if (net.actions.sendChat) net.actions.sendChat({text:t}); else { for (var id in net.peerConns){ try { net.peerConns[id].send({type:'chat',text:t}); } catch(e){} } } }
 
-/* ===== МЕНЮ ===== */
+/* ============================================================
+   МЕНЮ
+   ============================================================ */
+var screens = {
+  mainMenu: document.getElementById('mainMenu'), singleSaves: document.getElementById('singleSaves'),
+  coopSaves: document.getElementById('coopSaves'), coopJoin: document.getElementById('coopJoin'),
+  settingsScreen: document.getElementById('settingsScreen'), gameScreen: document.getElementById('gameScreen'),
+  pauseScreen: document.getElementById('pauseScreen'), exitScreen: document.getElementById('exitScreen')
+};
+var currentScreen=null, previousScreen=null, inGame=false;
+
+function showScreen(n){
+  if (currentScreen && screens[currentScreen]) screens[currentScreen].classList.remove('active');
+  if (screens[n]) { screens[n].classList.add('active'); currentScreen=n; }
+  var tc = document.getElementById('touchControls');
+  if (tc) { if (n === 'gameScreen' && isTouch) tc.classList.add('active'); else tc.classList.remove('active'); }
+  checkOrientation(); updateClickHint();
+  if (n !== 'gameScreen' && document.pointerLockElement) document.exitPointerLock();
+}
+function checkOrientation(){
+  var rb = document.getElementById('rotateBanner'); if (!rb) return;
+  var isPortrait = window.innerHeight > window.innerWidth;
+  if (isTouch && isPortrait && currentScreen === 'gameScreen') rb.classList.add('active');
+  else rb.classList.remove('active');
+}
+window.addEventListener('orientationchange', function(){ setTimeout(checkOrientation, 200); });
+window.addEventListener('resize', checkOrientation);
+
+function updateClickHint(){
+  var ch = document.getElementById('clickHint'), cr = document.getElementById('crosshair');
+  if (!ch) return;
+  if (isTouch){ ch.classList.add('hidden'); if (cr) cr.classList.remove('show'); return; }
+  if (currentScreen === 'gameScreen' && game && !game.paused && !document.pointerLockElement){ ch.classList.remove('hidden'); if (cr) cr.classList.remove('show'); }
+  else if (currentScreen === 'gameScreen' && document.pointerLockElement){ ch.classList.add('hidden'); if (cr) cr.classList.add('show'); }
+  else { ch.classList.add('hidden'); if (cr) cr.classList.remove('show'); }
+}
+function getSave(t,s){ try{ var r=localStorage.getItem('hunjub3d_'+t+'_'+s); return r?JSON.parse(r):null;}catch(e){return null;} }
+function setSave(t,s,d){ try{ localStorage.setItem('hunjub3d_'+t+'_'+s,JSON.stringify(d)); }catch(e){} }
+function genCode(){ var ch='ABCDEFGHJKLMNPQRSTUVWXYZ23456789', s=''; for (var i=0;i<6;i++) s += ch.charAt(Math.floor(Math.random()*ch.length)); return s; }
+window.hideCodeOverlay = function(){ var o = document.getElementById('codeOverlay'); if (o) o.classList.remove('active'); };
+
 window.go = function(action){
   switch(action){
     case 'single': showScreen('singleSaves'); break;
@@ -571,133 +908,248 @@ function submitJoin(){
   startGame('coop', 'join', code, 'client');
 }
 function buildSlots(container, type){
-  if (!container) return;
-  container.innerHTML='';
+  if (!container) return; container.innerHTML='';
   for (var i=1;i<=3;i++){
     (function(idx){
       var save = getSave(type, idx);
-      var slot = document.createElement('div');
-      slot.className='slot';
-      slot.innerHTML = '<div class="num">'+idx+'</div>' +
-        (save ? '<div class="info"><b>Ночь '+save.level+'</b>💰'+(save.coins||0)+'<br>'+save.date+'</div>'
-              : '<div class="info">'+(type==='coop'?'Создать':'Пусто')+'</div>');
+      var slot = document.createElement('div'); slot.className='slot';
+      slot.innerHTML = '<div class="num">'+idx+'</div>' + (save ? '<div class="info"><b>Ночь '+save.level+'</b>💰'+(save.coins||0)+'<br>'+save.date+'</div>' : '<div class="info">'+(type==='coop'?'Создать':'Пусто')+'</div>');
       slot.onclick = function(){ startGame(type, idx, null, 'host'); };
       container.appendChild(slot);
     })(i);
   }
 }
 
-/* ===== 3D ===== */
+/* ============================================================
+   3D
+   ============================================================ */
 var canvas, renderer, scene, camera, clock;
 var game = null, rafId = null, lastT = 0, keys = {};
 var keyMap={'w':'w','ц':'w','W':'w','a':'a','ф':'a','A':'a','s':'s','ы':'s','S':'s','d':'d','в':'d','D':'d','ArrowUp':'w','ArrowDown':'s','ArrowLeft':'a','ArrowRight':'d'};
 var WEATHER_NAMES = {clear:'Ясно', rain:'Дождь', snow:'Снег', heatwave:'Жара'};
 
-var groundMesh = null;
-var sunLight = null, hemiLight = null, ambient = null;
-var resourceMeshes = [];
-var enemyMeshes = [];
-var bandageMeshes = [];
-var campfireMesh = null;
-var remoteMeshes = [];
+var groundMesh = null, sunLight = null, hemiLight = null, ambient = null;
+var resourceMeshes = [], enemyMeshes = [], bandageMeshes = [], campfireMesh = null, remoteMeshes = [];
+var grassMesh = null, particlesGroup = null;
+var camYaw = 0, camPitch = 0, playerEyeHeight = 1.7, moveSpeed = 4.5;
+var stepSoundTimer = 0, fireSoundTimer = 0, enemySoundTimer = 0;
 
-// === FIRST PERSON ===
-// camYaw - горизонтальный угол (радианы). Применяется как rotation.y камеры.
-// camPitch - вертикальный (радианы). rotation.x камеры.
-var camYaw = 0;
-var camPitch = 0;
-var playerEyeHeight = 1.7;
-var moveSpeed = 4.5;
-
-var MOUSE_SENSITIVITY = 0.0022;
-var TOUCH_SENSITIVITY = 0.005;
-document.addEventListener('DOMContentLoaded', function(){
-  var sr = document.getElementById('sensRange');
-  if (sr) sr.addEventListener('input', function(){
-    var v = parseInt(sr.value, 10);
-    MOUSE_SENSITIVITY = 0.00022 * v;
-    TOUCH_SENSITIVITY = 0.0005 * v;
-  });
-});
+function getMouseSens(){ return 0.00022 * SETTINGS.mouseSens; }
+function getTouchSens(){ return 0.0005 * SETTINGS.touchSens; }
 
 function initThree(){
   canvas = document.getElementById('gameCanvas');
-  renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: !isTouch });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, isTouch ? 1.5 : 2));
+  var pr = currentPreset();
+  renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: pr.antialias });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, pr.pixelRatio));
   renderer.setSize(window.innerWidth, window.innerHeight);
+  if (pr.shadows){
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = pr.shadowType === 'pcfsoft' ? THREE.PCFSoftShadowMap : THREE.PCFShadowMap;
+  } else {
+    renderer.shadowMap.enabled = false;
+  }
   scene = new THREE.Scene();
-  scene.fog = new THREE.Fog(0x87a7c0, 40, 120);
-  camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 500);
+  scene.fog = new THREE.Fog(0x87a7c0, pr.fogNear, pr.fogFar);
+  camera = new THREE.PerspectiveCamera(SETTINGS.fov, window.innerWidth/window.innerHeight, 0.1, 500);
   camera.rotation.order = 'YXZ';
 
-  ambient = new THREE.AmbientLight(0xffffff, 0.4); scene.add(ambient);
+  ambient = new THREE.AmbientLight(0xffffff, pr.ambientIntensity); scene.add(ambient);
   hemiLight = new THREE.HemisphereLight(0xffffff, 0x556644, 0.6); scene.add(hemiLight);
   sunLight = new THREE.DirectionalLight(0xfff2d0, 1.0); sunLight.position.set(30, 50, 20); scene.add(sunLight);
+  if (pr.shadows){
+    sunLight.castShadow = true;
+    var sz = SETTINGS.preset === 'ultra' ? 2048 : 1024;
+    sunLight.shadow.mapSize.width = sz; sunLight.shadow.mapSize.height = sz;
+    sunLight.shadow.camera.near = 1;
+    sunLight.shadow.camera.far = 200;
+    sunLight.shadow.camera.left = -60;
+    sunLight.shadow.camera.right = 60;
+    sunLight.shadow.camera.top = 60;
+    sunLight.shadow.camera.bottom = -60;
+  }
   clock = new THREE.Clock();
 }
 window.addEventListener('resize', function(){
   if (renderer){ camera.aspect = window.innerWidth/window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); }
 });
 
-function makeTree(){ var g=new THREE.Group(); var t=new THREE.Mesh(new THREE.CylinderGeometry(0.25,0.35,2.2,6), new THREE.MeshLambertMaterial({color:0x5a3a20})); t.position.y=1.1; g.add(t); var c=new THREE.Mesh(new THREE.ConeGeometry(1.6,3,7), new THREE.MeshLambertMaterial({color:0x2e7d32})); c.position.y=3.2; g.add(c); return g; }
-function makeStone(){ var m=new THREE.Mesh(new THREE.IcosahedronGeometry(0.9,0), new THREE.MeshLambertMaterial({color:0x8a8a8a})); m.position.y=0.5; return m; }
-function makeBush(){ var m=new THREE.Mesh(new THREE.SphereGeometry(0.8,6,5), new THREE.MeshLambertMaterial({color:0x3a8a3a})); m.position.y=0.5; return m; }
-function makeWater(){ var m=new THREE.Mesh(new THREE.CircleGeometry(2.2,16), new THREE.MeshLambertMaterial({color:0x3a80c0,transparent:true,opacity:0.85})); m.rotation.x=-Math.PI/2; m.position.y=0.02; return m; }
-function makeCoin(){ var m=new THREE.Mesh(new THREE.CylinderGeometry(0.35,0.35,0.1,12), new THREE.MeshLambertMaterial({color:0xffd700,emissive:0x554400})); m.position.y=0.6; return m; }
-function makeBandage(){ var g=new THREE.Group(); var b=new THREE.Mesh(new THREE.BoxGeometry(0.7,0.25,0.5), new THREE.MeshLambertMaterial({color:0xf8f8f0})); b.position.y=0.4; g.add(b); var c=new THREE.Mesh(new THREE.BoxGeometry(0.5,0.28,0.12), new THREE.MeshLambertMaterial({color:0xe03030})); c.position.y=0.4; g.add(c); return g; }
+/* ===== МАТЕРИАЛЫ ЗАВИСЯТ ОТ ГРАФИКИ ===== */
+function treeMaterials(){
+  var pr = currentPreset();
+  if (pr.treeDetail === 0) return { trunk: new THREE.MeshLambertMaterial({color:0x5a3a20}), crown: new THREE.MeshLambertMaterial({color:0x2e7d32}) };
+  if (pr.treeDetail >= 2) return { trunk: new THREE.MeshStandardMaterial({color:0x5a3a20, roughness:0.9}), crown: new THREE.MeshStandardMaterial({color:0x2e7d32, roughness:0.8}) };
+  return { trunk: new THREE.MeshLambertMaterial({color:0x5a3a20}), crown: new THREE.MeshLambertMaterial({color:0x2e7d32}) };
+}
+function makeTree(){
+  var pr = currentPreset();
+  var g = new THREE.Group();
+  var mat = treeMaterials();
+  var trunk;
+  if (pr.treeDetail >= 2) trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.35, 2.4, 8), mat.trunk);
+  else trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.35, 2.2, 5), mat.trunk);
+  trunk.position.y = 1.1; trunk.castShadow = pr.shadows; g.add(trunk);
+  if (pr.treeDetail >= 3){
+    // 2 конуса
+    var c1 = new THREE.Mesh(new THREE.ConeGeometry(1.7, 2.4, 8), mat.crown); c1.position.y = 2.6; c1.castShadow = true; g.add(c1);
+    var c2 = new THREE.Mesh(new THREE.ConeGeometry(1.3, 2.2, 8), mat.crown); c2.position.y = 3.9; c2.castShadow = true; g.add(c2);
+    var c3 = new THREE.Mesh(new THREE.ConeGeometry(0.9, 1.6, 8), mat.crown); c3.position.y = 5.0; c3.castShadow = true; g.add(c3);
+  } else {
+    var c = new THREE.Mesh(new THREE.ConeGeometry(1.6, 3, pr.treeDetail >= 2 ? 8 : 5), mat.crown);
+    c.position.y = 3.2; c.castShadow = pr.shadows; g.add(c);
+  }
+  return g;
+}
+function makeStone(){
+  var pr = currentPreset();
+  var mat = pr.treeDetail >= 2 ? new THREE.MeshStandardMaterial({color:0x8a8a8a, roughness:0.9}) : new THREE.MeshLambertMaterial({color:0x8a8a8a});
+  var m = new THREE.Mesh(new THREE.IcosahedronGeometry(0.9, pr.treeDetail >= 2 ? 1 : 0), mat);
+  m.position.y = 0.5; m.castShadow = pr.shadows; return m;
+}
+function makeBush(){
+  var pr = currentPreset();
+  var mat = pr.treeDetail >= 2 ? new THREE.MeshStandardMaterial({color:0x3a8a3a, roughness:0.8}) : new THREE.MeshLambertMaterial({color:0x3a8a3a});
+  var m = new THREE.Mesh(new THREE.SphereGeometry(0.8, pr.treeDetail >= 2 ? 8 : 6, pr.treeDetail >= 2 ? 6 : 5), mat);
+  m.position.y = 0.5; m.castShadow = pr.shadows; return m;
+}
+function makeWater(){
+  var pr = currentPreset();
+  var mat = new THREE.MeshStandardMaterial({color:0x3a80c0, transparent:true, opacity:0.8, roughness:0.1, metalness:0.3});
+  var m = new THREE.Mesh(new THREE.CircleGeometry(2.2, pr.treeDetail >= 2 ? 24 : 16), mat);
+  m.rotation.x = -Math.PI/2; m.position.y = 0.02; return m;
+}
+function makeCoin(){
+  var m = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.35, 0.1, 12), new THREE.MeshStandardMaterial({color:0xffd700, emissive:0x554400, metalness:0.8, roughness:0.3}));
+  m.position.y = 0.6; return m;
+}
+function makeBandage(){
+  var g = new THREE.Group();
+  var b = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.25, 0.5), new THREE.MeshLambertMaterial({color:0xf8f8f0})); b.position.y = 0.4; g.add(b);
+  var c = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.28, 0.12), new THREE.MeshLambertMaterial({color:0xe03030})); c.position.y = 0.4; g.add(c);
+  var light = new THREE.PointLight(0x70e070, 0.5, 4); light.position.y = 0.6; g.add(light);
+  return g;
+}
 function makeCampfire(){
-  var g=new THREE.Group();
-  for (var i=0;i<8;i++){ var a=i/8*Math.PI*2; var s=new THREE.Mesh(new THREE.DodecahedronGeometry(0.22,0), new THREE.MeshLambertMaterial({color:0x777777})); s.position.set(Math.cos(a)*0.9,0.1,Math.sin(a)*0.9); g.add(s); }
-  var l=new THREE.Mesh(new THREE.BoxGeometry(1.2,0.2,0.25), new THREE.MeshLambertMaterial({color:0x3a2410})); l.position.y=0.15; g.add(l);
-  var f=new THREE.Mesh(new THREE.ConeGeometry(0.55,1.6,6), new THREE.MeshBasicMaterial({color:0xff8a20})); f.position.y=0.9; f.name='fire'; g.add(f);
-  var f2=new THREE.Mesh(new THREE.ConeGeometry(0.3,1.0,5), new THREE.MeshBasicMaterial({color:0xffe080})); f2.position.y=0.8; f2.name='fire2'; g.add(f2);
-  var li=new THREE.PointLight(0xff8a30,3,18); li.position.y=1.4; g.add(li);
+  var g = new THREE.Group();
+  var pr = currentPreset();
+  for (var i=0;i<8;i++){
+    var a=i/8*Math.PI*2;
+    var s = new THREE.Mesh(new THREE.DodecahedronGeometry(0.22, 0), new THREE.MeshLambertMaterial({color:0x777777}));
+    s.position.set(Math.cos(a)*0.9, 0.1, Math.sin(a)*0.9); s.castShadow = pr.shadows; g.add(s);
+  }
+  var l = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.2, 0.25), new THREE.MeshLambertMaterial({color:0x3a2410})); l.position.y = 0.15; g.add(l);
+  var f = new THREE.Mesh(new THREE.ConeGeometry(0.55, 1.6, 6), new THREE.MeshBasicMaterial({color:0xff8a20})); f.position.y = 0.9; f.name = 'fire'; g.add(f);
+  var f2 = new THREE.Mesh(new THREE.ConeGeometry(0.3, 1.0, 5), new THREE.MeshBasicMaterial({color:0xffe080})); f2.position.y = 0.8; f2.name = 'fire2'; g.add(f2);
+  var li = new THREE.PointLight(0xff8a30, 3, 18); li.position.y = 1.4; g.add(li);
   return g;
 }
 function makeEnemy(isBoss){
-  var g=new THREE.Group();
-  var r=isBoss?1.1:0.55;
-  var b=new THREE.Mesh(new THREE.SphereGeometry(r,12,10), new THREE.MeshLambertMaterial({color:isBoss?0x3a0000:0x1a1010})); b.position.y=r; g.add(b);
-  var hm=new THREE.MeshLambertMaterial({color:isBoss?0xffcc88:0xa08868});
-  var h1=new THREE.Mesh(new THREE.ConeGeometry(0.08,isBoss?0.7:0.4,5), hm); h1.position.set(-0.25,r+r*0.5,0); h1.rotation.z=0.3; g.add(h1);
-  var h2=new THREE.Mesh(new THREE.ConeGeometry(0.08,isBoss?0.7:0.4,5), hm); h2.position.set(0.25,r+r*0.5,0); h2.rotation.z=-0.3; g.add(h2);
-  var e=new THREE.Mesh(new THREE.SphereGeometry(isBoss?0.22:0.13,8,8), new THREE.MeshBasicMaterial({color:0xff2020})); e.position.set(0,r,r*0.9); g.add(e);
+  var pr = currentPreset();
+  var g = new THREE.Group();
+  var r = isBoss ? 1.1 : 0.55;
+  var bodyMat = pr.treeDetail >= 2 ? new THREE.MeshStandardMaterial({color:isBoss?0x3a0000:0x1a1010, roughness:1}) : new THREE.MeshLambertMaterial({color:isBoss?0x3a0000:0x1a1010});
+  var b = new THREE.Mesh(new THREE.SphereGeometry(r, 12, 10), bodyMat);
+  b.position.y = r; b.castShadow = pr.shadows; g.add(b);
+  var hm = new THREE.MeshLambertMaterial({color:isBoss?0xffcc88:0xa08868});
+  var h1 = new THREE.Mesh(new THREE.ConeGeometry(0.08, isBoss?0.7:0.4, 5), hm); h1.position.set(-0.25, r + r*0.5, 0); h1.rotation.z = 0.3; g.add(h1);
+  var h2 = new THREE.Mesh(new THREE.ConeGeometry(0.08, isBoss?0.7:0.4, 5), hm); h2.position.set(0.25, r + r*0.5, 0); h2.rotation.z = -0.3; g.add(h2);
+  var e = new THREE.Mesh(new THREE.SphereGeometry(isBoss?0.22:0.13, 8, 8), new THREE.MeshBasicMaterial({color:0xff2020})); e.position.set(0, r, r*0.9); g.add(e);
+  var light = new THREE.PointLight(0xff2020, isBoss ? 2 : 0.7, 6);
+  light.position.set(0, r, 0); g.add(light);
+  return g;
+}
+function makeGrass(){
+  // Ковёр из плоскостей с текстурой-травой (простая имитация)
+  var g = new THREE.Group();
+  var count = 400;
+  var geo = new THREE.PlaneGeometry(0.3, 0.6);
+  var mat = new THREE.MeshLambertMaterial({color:0x3a6a3a, side: THREE.DoubleSide});
+  var mesh = new THREE.InstancedMesh(geo, mat, count);
+  var dummy = new THREE.Object3D();
+  for (var i=0;i<count;i++){
+    var ang = Math.random() * Math.PI * 2;
+    var rad = Math.random() * 70;
+    dummy.position.set(Math.cos(ang) * rad, 0.3, Math.sin(ang) * rad);
+    dummy.rotation.y = Math.random() * Math.PI * 2;
+    dummy.updateMatrix();
+    mesh.setMatrixAt(i, dummy.matrix);
+  }
+  mesh.instanceMatrix.needsUpdate = true;
+  g.add(mesh);
+  return g;
+}
+function makeParticles(count){
+  var g = new THREE.Group();
+  var geo = new THREE.SphereGeometry(0.05, 4, 3);
+  var mat = new THREE.MeshBasicMaterial({color:0xffffcc});
+  for (var i=0;i<count;i++){
+    var p = new THREE.Mesh(geo, mat);
+    p.position.set((Math.random()-0.5)*30, Math.random()*8 + 2, (Math.random()-0.5)*30);
+    p.userData.speed = 0.1 + Math.random()*0.3;
+    g.add(p);
+  }
+  g.userData.count = count;
   return g;
 }
 
 function rebuildScene(){
+  var pr = currentPreset();
   for (var i=0;i<resourceMeshes.length;i++) scene.remove(resourceMeshes[i]);
-  resourceMeshes=[];
+  resourceMeshes = [];
   for (var i=0;i<enemyMeshes.length;i++) scene.remove(enemyMeshes[i]);
-  enemyMeshes=[];
+  enemyMeshes = [];
   rebuildBandages();
-  if (campfireMesh){ scene.remove(campfireMesh); campfireMesh=null; }
-  if (groundMesh){ scene.remove(groundMesh); groundMesh=null; }
+  if (campfireMesh){ scene.remove(campfireMesh); campfireMesh = null; }
+  if (groundMesh){ scene.remove(groundMesh); groundMesh = null; }
+  if (grassMesh){ scene.remove(grassMesh); grassMesh = null; }
+  if (particlesGroup){ scene.remove(particlesGroup); particlesGroup = null; }
   for (var i=0;i<remoteMeshes.length;i++) scene.remove(remoteMeshes[i].group);
-  remoteMeshes=[];
+  remoteMeshes = [];
   if (!game) return;
-  groundMesh = new THREE.Mesh(new THREE.PlaneGeometry(200,200), new THREE.MeshLambertMaterial({color:groundColorByWeather()}));
-  groundMesh.rotation.x = -Math.PI/2; scene.add(groundMesh);
+
+  var groundMat = pr.treeDetail >= 2 ? new THREE.MeshStandardMaterial({color:groundColorByWeather(), roughness:1}) : new THREE.MeshLambertMaterial({color:groundColorByWeather()});
+  groundMesh = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), groundMat);
+  groundMesh.rotation.x = -Math.PI/2;
+  groundMesh.receiveShadow = pr.shadows;
+  scene.add(groundMesh);
+
   for (var i=0;i<game.resources.length;i++){
-    var r=game.resources[i]; var m;
-    if (r.type==='tree') m=makeTree(); else if (r.type==='stone') m=makeStone(); else if (r.type==='bush') m=makeBush();
-    else if (r.type==='water') m=makeWater(); else if (r.type==='coin') m=makeCoin(); else continue;
-    m.position.x = r.x; m.position.z = r.z; scene.add(m); resourceMeshes.push(m);
+    var r = game.resources[i]; var m;
+    if (r.type==='tree') m = makeTree();
+    else if (r.type==='stone') m = makeStone();
+    else if (r.type==='bush') m = makeBush();
+    else if (r.type==='water') m = makeWater();
+    else if (r.type==='coin') m = makeCoin();
+    else continue;
+    m.position.x = r.x; m.position.z = r.z;
+    scene.add(m); resourceMeshes.push(m);
+  }
+  if (pr.grass){
+    grassMesh = makeGrass();
+    scene.add(grassMesh);
+  }
+  if (pr.particles > 0){
+    particlesGroup = makeParticles(pr.particles);
+    scene.add(particlesGroup);
   }
   if (game.campfire && game.campfire.life > 0){
-    campfireMesh = makeCampfire(); campfireMesh.position.set(game.campfire.x,0,game.campfire.z); scene.add(campfireMesh);
+    campfireMesh = makeCampfire();
+    campfireMesh.position.set(game.campfire.x, 0, game.campfire.z);
+    scene.add(campfireMesh);
   }
   for (var i=0;i<game.enemies.length;i++){
-    var e=game.enemies[i]; var m=makeEnemy(e.isBoss); m.position.set(e.x,0,e.z); scene.add(m); enemyMeshes.push(m);
+    var e = game.enemies[i]; var m = makeEnemy(e.isBoss);
+    m.position.set(e.x, 0, e.z); scene.add(m); enemyMeshes.push(m);
   }
   for (var id in remotePlayers) addRemoteMesh(id);
 }
 function rebuildBandages(){
   for (var i=0;i<bandageMeshes.length;i++) scene.remove(bandageMeshes[i]);
-  bandageMeshes=[];
+  bandageMeshes = [];
   if (!game) return;
   for (var i=0;i<game.bandages.length;i++){
-    var b=game.bandages[i]; var m=makeBandage(); m.position.set(b.x,0,b.z); scene.add(m); bandageMeshes.push(m);
+    var b = game.bandages[i]; var m = makeBandage();
+    m.position.set(b.x, 0, b.z); scene.add(m); bandageMeshes.push(m);
   }
 }
 function groundColorByWeather(){
@@ -710,10 +1162,12 @@ function groundColorByWeather(){
 function addRemoteMesh(id){
   if (remoteMeshes.some(function(r){return r.id===id;})) return;
   var rp = remotePlayers[id]; if (!rp) return;
+  var pr = currentPreset();
   var g = new THREE.Group();
-  var b = new THREE.Mesh(new THREE.CapsuleGeometry(0.4,0.8,4,8), new THREE.MeshLambertMaterial({color:0x4ae2a0})); b.position.y=0.8; g.add(b);
-  var h = new THREE.Mesh(new THREE.SphereGeometry(0.35,12,10), new THREE.MeshLambertMaterial({color:0xf0c090})); h.position.y=1.7; g.add(h);
-  g.position.set(rp.x,0,rp.z); scene.add(g);
+  var bodyMat = pr.treeDetail >= 2 ? new THREE.MeshStandardMaterial({color:0x4ae2a0}) : new THREE.MeshLambertMaterial({color:0x4ae2a0});
+  var b = new THREE.Mesh(new THREE.CapsuleGeometry(0.4, 0.8, 4, 8), bodyMat); b.position.y = 0.8; b.castShadow = pr.shadows; g.add(b);
+  var h = new THREE.Mesh(new THREE.SphereGeometry(0.35, 12, 10), new THREE.MeshLambertMaterial({color:0xf0c090})); h.position.y = 1.7; g.add(h);
+  g.position.set(rp.x, 0, rp.z); scene.add(g);
   remoteMeshes.push({id:id, group:g});
 }
 function removeRemoteMesh(id){
@@ -724,7 +1178,19 @@ function removeRemoteMesh(id){
 function startGame(type, slot, joinCode, role){
   inGame = true;
   showScreen('gameScreen');
+  ensureAudioReady();
+  startAmbient();
   if (!renderer) initThree();
+  else {
+    // применим текущие настройки графики
+    var pr = currentPreset();
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, pr.pixelRatio));
+    if (pr.shadows){ renderer.shadowMap.enabled = true; renderer.shadowMap.type = pr.shadowType === 'pcfsoft' ? THREE.PCFSoftShadowMap : THREE.PCFShadowMap; }
+    else renderer.shadowMap.enabled = false;
+    camera.fov = SETTINGS.fov; camera.updateProjectionMatrix();
+    if (scene.fog){ scene.fog.near = pr.fogNear; scene.fog.far = pr.fogFar; }
+    if (ambient) ambient.intensity = pr.ambientIntensity;
+  }
   resizeCanvas();
   var save = getSave(type, slot);
   initGame(type, slot, joinCode, save, role);
@@ -751,15 +1217,11 @@ function startGame(type, slot, joinCode, role){
 }
 function stopGame(){
   if (rafId) cancelAnimationFrame(rafId); rafId = null;
-  closeNetwork();
-  game = null;
+  closeNetwork(); game = null;
   if (document.pointerLockElement) document.exitPointerLock();
-  if (scene){
-    while(scene.children.length) scene.remove(scene.children[0]);
-    resourceMeshes=[]; enemyMeshes=[]; bandageMeshes=[]; remoteMeshes=[];
-    campfireMesh=null; groundMesh=null;
-  }
+  if (scene){ while(scene.children.length) scene.remove(scene.children[0]); resourceMeshes=[]; enemyMeshes=[]; bandageMeshes=[]; remoteMeshes=[]; campfireMesh=null; groundMesh=null; grassMesh=null; particlesGroup=null; }
   window.hideCodeOverlay();
+  stopAmbient();
 }
 function resizeCanvas(){
   if (!renderer) return;
@@ -773,7 +1235,6 @@ function initGame(type, slot, joinCode, save, role){
     resources:[], campfire:null, enemies:[], bandages:[],
     stats: { hp:100, hunger:100, water:100, energy:100, temp:0 },
     inv: { wood:0, stone:0, food:0, water:0, coins:0, hasAxe:false, hasBandage:false },
-    // === УВЕЛИЧЕНО ВРЕМЯ ===
     time: 0, dayDur: 120, nightDur: 90,
     isNight: false, level: 1, nightsSurvived: 0,
     weather: 'clear', paused: false,
@@ -795,7 +1256,7 @@ function generateWorld(){
   g.enemies = [];
 }
 
-var netTimer=0, worldTimer=0;
+var netTimer=0, worldTimer=0, fpsAcc=0, fpsCount=0, fpsTimer=0;
 function update(dt){
   var g = game;
   g.time += dt;
@@ -806,28 +1267,16 @@ function update(dt){
   if (g.isNight && !wasNight) onNightStart();
   if (!g.isNight && wasNight) onDayStart();
 
-  // === ДВИЖЕНИЕ (First Person, правильно) ===
+  var moving = false;
   if (!g.player.isDowned){
     var forward = 0, strafe = 0;
     if (keys.w) forward += 1;
     if (keys.s) forward -= 1;
     if (keys.d) strafe += 1;
     if (keys.a) strafe -= 1;
-
     if (forward !== 0 || strafe !== 0){
-      // Камера смотрит в направлении: (-sin(camYaw), 0, -cos(camYaw))
-      // (стандарт THREE.js rotation.y=0 => смотрит в -Z)
-      var fwdX = -Math.sin(camYaw);
-      var fwdZ = -Math.cos(camYaw);
-      // Право = cross(forward, up) = (cos(camYaw), 0, -sin(camYaw))... 
-      // точнее: при fwd=(0,0,-1) right должен быть (1,0,0).
-      // cross((0,0,-1),(0,1,0)) = (-1*1 - 0*0, 0*0 - (-1)*0, 0*0 - 0*1) = (-1, 0, 0). Хм.
-      // Значит right = cross(up, forward): cross((0,1,0),(0,0,-1)) = (1*(-1)-0*0, 0*0-0*(-1), 0*0-1*0) = (-1,0,0). Тоже -1.
-      // Ладно, эмпирически: при fwd=(0,0,-1) right=(1,0,0) — то что нужно.
-      // Значит right = (cos(camYaw), 0, -sin(camYaw))
-      var rightX = Math.cos(camYaw);
-      var rightZ = -Math.sin(camYaw);
-
+      var fwdX = -Math.sin(camYaw), fwdZ = -Math.cos(camYaw);
+      var rightX = Math.cos(camYaw), rightZ = -Math.sin(camYaw);
       var wx = fwdX * forward + rightX * strafe;
       var wz = fwdZ * forward + rightZ * strafe;
       var wlen = Math.hypot(wx, wz);
@@ -841,13 +1290,19 @@ function update(dt){
         g.player.x += wx * sp * dt;
         g.player.z += wz * sp * dt;
         if (running) g.stats.energy -= dt * 8;
+        moving = true;
       }
     }
-    // Модель игрока в сети смотрит туда же, куда камера
     g.player.yaw = camYaw;
     g.player.x = Math.max(-95, Math.min(95, g.player.x));
     g.player.z = Math.max(-95, Math.min(95, g.player.z));
   }
+
+  // Шаги — звук
+  if (moving){
+    stepSoundTimer -= dt;
+    if (stepSoundTimer <= 0){ stepSoundTimer = 0.45 / (keys.shift ? 1.6 : 1); playSound('step'); }
+  } else stepSoundTimer = 0;
 
   if (!g.player.isDowned){
     var diff = 1 + (g.level-1)*0.08;
@@ -860,6 +1315,9 @@ function update(dt){
   if (g.campfire && g.campfire.life > 0){
     var d = Math.hypot(g.player.x - g.campfire.x, g.player.z - g.campfire.z);
     if (d < 6) nearFire = true;
+    // звук огня
+    fireSoundTimer -= dt;
+    if (fireSoundTimer <= 0){ fireSoundTimer = 0.5 + Math.random()*0.5; if (d < 25) playSound('fire'); }
   }
   if (nearFire) g.stats.temp += dt * 18;
   else {
@@ -891,6 +1349,12 @@ function update(dt){
 
   if (g.type !== 'coop' || net.isHost) updateEnemies(dt);
 
+  // Враги рычат
+  if (g.isNight && g.enemies.length > 0){
+    enemySoundTimer -= dt;
+    if (enemySoundTimer <= 0){ enemySoundTimer = 2.5 + Math.random()*3; playSound('enemy'); }
+  }
+
   for (var id in remotePlayers){
     var rp = remotePlayers[id];
     if (performance.now() - rp.lastSeen > 6000){ removeRemoteMesh(id); delete remotePlayers[id]; }
@@ -898,7 +1362,7 @@ function update(dt){
   if (g.player.isDowned && g.player.downTimer > 0){
     g.player.downTimer -= dt;
     if (g.player.downTimer <= 0){
-      showMsg('Ты погиб...');
+      showMsg('Ты погиб...'); playSound('death');
       setTimeout(function(){ if (game===g) respawnAfterDeath(); }, 1500);
     }
   }
@@ -907,9 +1371,9 @@ function update(dt){
     for (var id in remotePlayers) if (!remotePlayers[id].isDowned) aliveOthers++;
     if (g.type === 'coop' && aliveOthers >= 1){
       g.stats.hp = 0; g.player.isDowned = true; g.player.downTimer = 45;
-      showMsg('Ты ранен! Товарищ, найди бинт!');
+      showMsg('Ты ранен! Товарищ, найди бинт!'); playSound('hit');
     } else {
-      g.respawning = true; showMsg('Ты погиб!');
+      g.respawning = true; showMsg('Ты погиб!'); playSound('death');
       setTimeout(function(){ if (game===g) respawnAfterDeath(); }, 1400);
     }
   }
@@ -923,15 +1387,14 @@ function update(dt){
     if (!anyDowned) g._bandageSpawned = false;
   }
 
-  // === КАМЕРА (First Person через rotation) ===
+  // Камера
   camera.position.set(g.player.x, playerEyeHeight, g.player.z);
   camera.rotation.order = 'YXZ';
   camera.rotation.y = camYaw;
   camera.rotation.x = camPitch;
-  // При ранении — камера заваливается набок
   camera.rotation.z = g.player.isDowned ? 1.2 : 0;
 
-  // Враги, remote, костёр, бинты, монеты
+  // Враги, remote, костёр, бинты, монеты, частицы
   for (var i=0;i<enemyMeshes.length && i<g.enemies.length;i++){
     enemyMeshes[i].position.x = g.enemies[i].x;
     enemyMeshes[i].position.z = g.enemies[i].z;
@@ -950,12 +1413,29 @@ function update(dt){
   for (var i=0;i<resourceMeshes.length && i<g.resources.length;i++){
     if (g.resources[i].type === 'coin') resourceMeshes[i].rotation.y += dt * 2;
   }
+  // Частицы кружатся
+  if (particlesGroup){
+    var arr = particlesGroup.children;
+    for (var i=0;i<arr.length;i++){
+      arr[i].position.y += arr[i].userData.speed * dt;
+      if (arr[i].position.y > 12) arr[i].position.y = 2;
+      arr[i].rotation.y += dt * 2;
+    }
+  }
 
   updateLighting();
+  updateAmbient();
   if (g.messageTimer > 0) g.messageTimer -= dt;
   netTimer += dt;
   if (netTimer > 0.05){ netTimer = 0; sendPlayerState(); }
   if (net.isHost){ worldTimer += dt; if (worldTimer > 0.1){ worldTimer = 0; sendWorldState(); } }
+
+  // FPS
+  fpsAcc += 1/dt; fpsCount++; fpsTimer += dt;
+  if (fpsTimer >= 0.5){
+    if (SETTINGS.showFps){ var el = document.getElementById('hudFps'); if (el) el.textContent = 'FPS: ' + Math.round(fpsAcc / fpsCount); }
+    fpsAcc = 0; fpsCount = 0; fpsTimer = 0;
+  }
 }
 
 function updateLighting(){
@@ -971,9 +1451,10 @@ function updateLighting(){
   else if (g.weather === 'heatwave') scene.background = new THREE.Color(isNight ? 0x3a2010 : 0xa08050);
   else scene.background = new THREE.Color(isNight ? 0x0a0a20 : 0x87a7c0);
   scene.fog.color.copy(scene.background);
-  if (isNight){ ambient.intensity = 0.15; hemiLight.intensity = 0.18; sunLight.intensity = 0.1; sunLight.color.setHex(0x8090c0); }
-  else if (nt < 0.15 || nt > 0.85){ ambient.intensity = 0.3; hemiLight.intensity = 0.4; sunLight.intensity = 0.5; sunLight.color.setHex(0xffb070); }
-  else { ambient.intensity = 0.5; hemiLight.intensity = 0.7; sunLight.intensity = 1.0; sunLight.color.setHex(0xfff2d0); }
+  var pr = currentPreset();
+  if (isNight){ ambient.intensity = pr.ambientIntensity * 0.3; hemiLight.intensity = 0.18; sunLight.intensity = 0.1; sunLight.color.setHex(0x8090c0); }
+  else if (nt < 0.15 || nt > 0.85){ ambient.intensity = pr.ambientIntensity * 0.7; hemiLight.intensity = 0.4; sunLight.intensity = 0.5; sunLight.color.setHex(0xffb070); }
+  else { ambient.intensity = pr.ambientIntensity; hemiLight.intensity = 0.7; sunLight.intensity = 1.0; sunLight.color.setHex(0xfff2d0); }
 }
 function respawnAfterDeath(){
   var g = game;
@@ -987,6 +1468,7 @@ function spawnBandages(){
 }
 function onNightStart(){
   var g = game;
+  playSound('night');
   if (g.nightsSurvived === 0) showMsg('Ночь... Ходят слухи про Одноглазого козла...');
   else showMsg('Ночь ' + (g.nightsSurvived+1) + '. Нужен костёр!');
   if (g.type !== 'coop' || net.isHost){
@@ -994,12 +1476,13 @@ function onNightStart(){
     if (g.weather === 'rain') count += 1;
     spawnEnemies(count);
     if (g.level % 3 === 0){
-      setTimeout(function(){ if (game===g && g.isNight){ spawnBoss(); showMsg('!!! ОДНОГЛАЗЫЙ КОЗЁЛ !!!'); } }, 3000);
+      setTimeout(function(){ if (game===g && g.isNight){ spawnBoss(); showMsg('!!! ОДНОГЛАЗЫЙ КОЗЁЛ !!!'); playSound('boss'); } }, 3000);
     }
   }
 }
 function onDayStart(){
   var g = game;
+  playSound('day');
   g.level++; g.nightsSurvived++;
   var reward = 10 + g.level*2;
   g.inv.coins += reward;
@@ -1030,8 +1513,7 @@ function onDayStart(){
 function spawnEnemies(n){
   var g = game;
   for (var i=0;i<n;i++){
-    var a = Math.random()*Math.PI*2;
-    var d = 25 + Math.random()*10;
+    var a = Math.random()*Math.PI*2, d = 25 + Math.random()*10;
     var e = { x: g.player.x + Math.cos(a)*d, z: g.player.z + Math.sin(a)*d,
       r: 0.6, speed: 2.5 + Math.random()*0.7 + g.level*0.15,
       hp: 2 + Math.floor(g.level/2), damage: 28 + g.level*3, isBoss: false };
@@ -1077,7 +1559,11 @@ function updateEnemies(dt){
         var pdx = best.x - e.x, pdz = best.z - e.z;
         var pd = Math.hypot(pdx, pdz) || 1;
         e.x += (pdx/pd) * e.speed * dt; e.z += (pdz/pd) * e.speed * dt;
-        if (pd < e.r + 0.8 && best.isLocal) g.stats.hp -= e.damage * dt * (e.isBoss ? 1.4 : 1);
+        if (pd < e.r + 0.8 && best.isLocal){
+          var dmg = e.damage * dt * (e.isBoss ? 1.4 : 1);
+          g.stats.hp -= dmg;
+          if (dmg > 0.5 && Math.random() < 0.02) playSound('hit', { vol: 0.6 });
+        }
       }
     }
   }
@@ -1092,7 +1578,7 @@ function performInteract(x, z, requesterId){
     var b = g.bandages[bi];
     var bd = Math.hypot(b.x - x, b.z - z);
     if (bd < 2){
-      if (isLocal) g.inv.hasBandage = true;
+      if (isLocal){ g.inv.hasBandage = true; playSound('pickup'); }
       g.bandages.splice(bi,1);
       if (isLocal) showMsg('Подобрал бинт');
       netBandage(bi); rebuildBandages(); return;
@@ -1105,11 +1591,11 @@ function performInteract(x, z, requesterId){
     if (d < bestD){ bestD = d; best = r; }
   }
   if (!best) return;
-  if (best.type === 'tree'){ best.hp -= 1; if (inv) inv.wood += (inv.hasAxe ? 3 : 1); if (isLocal) showMsg('+ дерево'); if (best.hp <= 0){ g.resources.splice(g.resources.indexOf(best),1); rebuildScene(); } }
-  else if (best.type === 'stone'){ best.hp -= 1; if (inv) inv.stone += 1; if (isLocal) showMsg('+ камень'); if (best.hp <= 0){ g.resources.splice(g.resources.indexOf(best),1); rebuildScene(); } }
-  else if (best.type === 'bush'){ if (inv) inv.food += 2; if (isLocal) showMsg('+ еда'); g.resources.splice(g.resources.indexOf(best),1); rebuildScene(); }
-  else if (best.type === 'water'){ if (inv) inv.water += 3; if (isLocal) showMsg('+ вода'); }
-  else if (best.type === 'coin'){ if (inv) inv.coins += 1; if (isLocal) showMsg('+ монета'); g.resources.splice(g.resources.indexOf(best),1); rebuildScene(); }
+  if (best.type === 'tree'){ best.hp -= 1; if (inv) inv.wood += (inv.hasAxe ? 3 : 1); if (isLocal) { showMsg('+ дерево'); playSound('chop'); } if (best.hp <= 0){ g.resources.splice(g.resources.indexOf(best),1); rebuildScene(); } }
+  else if (best.type === 'stone'){ best.hp -= 1; if (inv) inv.stone += 1; if (isLocal) { showMsg('+ камень'); playSound('chop'); } if (best.hp <= 0){ g.resources.splice(g.resources.indexOf(best),1); rebuildScene(); } }
+  else if (best.type === 'bush'){ if (inv) inv.food += 2; if (isLocal) { showMsg('+ еда'); playSound('pickup'); } g.resources.splice(g.resources.indexOf(best),1); rebuildScene(); }
+  else if (best.type === 'water'){ if (inv) inv.water += 3; if (isLocal) { showMsg('+ вода'); playSound('drink', { vol: 0.5 }); } }
+  else if (best.type === 'coin'){ if (inv) inv.coins += 1; if (isLocal) { showMsg('+ монета'); playSound('coin'); } g.resources.splice(g.resources.indexOf(best),1); rebuildScene(); }
 }
 function interact(){
   var g = game;
@@ -1120,7 +1606,7 @@ function interact(){
     if (rp.isDowned){
       var d = Math.hypot(rp.x - g.player.x, rp.z - g.player.z);
       if (d < 2.5 && g.inv.hasBandage){
-        g.inv.hasBandage = false; netRevive(id);
+        g.inv.hasBandage = false; netRevive(id); playSound('revive');
         showMsg('Оживил ' + rp.name + '!');
         rp.isDowned = false; rp.downTimer = 0;
         return;
@@ -1130,15 +1616,15 @@ function interact(){
   if (g.type === 'coop' && !net.isHost){ netInteract(g.player.x, g.player.z); return; }
   performInteract(g.player.x, g.player.z, net.myId);
 }
-function eat(){ var g=game; if(!g||g.player.isDowned)return; if(g.inv.food>0){g.inv.food--;g.stats.hunger=Math.min(100,g.stats.hunger+30);showMsg('Поел');}else showMsg('Нет еды'); }
-function drink(){ var g=game; if(!g||g.player.isDowned)return; if(g.inv.water>0){g.inv.water--;g.stats.water=Math.min(100,g.stats.water+35);showMsg('Попил');}else showMsg('Нет воды'); }
+function eat(){ var g=game; if(!g||g.player.isDowned)return; if(g.inv.food>0){g.inv.food--;g.stats.hunger=Math.min(100,g.stats.hunger+30);showMsg('Поел');playSound('eat');}else showMsg('Нет еды'); }
+function drink(){ var g=game; if(!g||g.player.isDowned)return; if(g.inv.water>0){g.inv.water--;g.stats.water=Math.min(100,g.stats.water+35);showMsg('Попил');playSound('drink');}else showMsg('Нет воды'); }
 function campfireAction(){
   var g = game; if(!g||g.player.isDowned)return;
   if (g.campfire && g.campfire.life > 0){
     var d = Math.hypot(g.player.x - g.campfire.x, g.player.z - g.campfire.z);
     if (d < 4){
       if (g.inv.wood < 3){ showMsg('Нужно 3 дерева'); return; }
-      g.inv.wood -= 3; g.campfire.life += 30; showMsg('Костёр заправлен'); return;
+      g.inv.wood -= 3; g.campfire.life += 30; showMsg('Костёр заправлен'); playSound('chop'); return;
     }
   }
   if (g.inv.wood < 5){ showMsg('Нужно 5 дерева'); return; }
@@ -1146,12 +1632,12 @@ function campfireAction(){
   g.campfire = { x: g.player.x, z: g.player.z, life: 40 };
   if (campfireMesh) scene.remove(campfireMesh);
   campfireMesh = makeCampfire(); campfireMesh.position.set(g.campfire.x,0,g.campfire.z); scene.add(campfireMesh);
-  showMsg('Костёр разожжён!');
+  showMsg('Костёр разожжён!'); playSound('pickup');
 }
 function craftAxe(){
   var g = game; if(!g||g.player.isDowned)return;
   if (g.inv.hasAxe){ showMsg('Топор уже есть'); return; }
-  if (g.inv.wood >= 3 && g.inv.stone >= 2){ g.inv.wood-=3; g.inv.stone-=2; g.inv.hasAxe=true; showMsg('Топор готов!'); }
+  if (g.inv.wood >= 3 && g.inv.stone >= 2){ g.inv.wood-=3; g.inv.stone-=2; g.inv.hasAxe=true; showMsg('Топор готов!'); playSound('pickup'); }
   else showMsg('Нужно 3 дерева и 2 камня');
 }
 function rest(){
@@ -1169,8 +1655,7 @@ function rest(){
 function showMsg(t){
   if (!game) return;
   game.message = t; game.messageTimer = 2.2;
-  var el = document.getElementById('hudMsg');
-  el.textContent = t; el.classList.add('show');
+  var el = document.getElementById('hudMsg'); el.textContent = t; el.classList.add('show');
   clearTimeout(showMsg._t);
   showMsg._t = setTimeout(function(){ el.classList.remove('show'); }, 2200);
 }
@@ -1198,13 +1683,11 @@ function updateHUD(){
   setBar('barHunger', 'lblHunger', g.stats.hunger, '#e09040', 'Еда: ');
   setBar('barWater', 'lblWater', g.stats.water, '#4090e0', 'Вода: ');
   setBar('barEnergy', 'lblEnergy', g.stats.energy, '#e0e040', 'Энер: ');
-
   var tempEl = document.getElementById('barTemp');
   var t = g.stats.temp;
   tempEl.style.width = Math.min(100, Math.abs(t)) + '%';
   tempEl.style.background = t < 0 ? '#4090ff' : '#ff6020';
   document.getElementById('lblTemp').textContent = 'Т: ' + (t>0?'+':'') + Math.round(t);
-
   document.getElementById('invWood').textContent = '🪵 ' + g.inv.wood;
   document.getElementById('invStone').textContent = '🪨 ' + g.inv.stone;
   document.getElementById('invFood').textContent = '🍖 ' + g.inv.food;
@@ -1212,7 +1695,6 @@ function updateHUD(){
   document.getElementById('invCoins').textContent = '💰 ' + g.inv.coins;
   document.getElementById('invAxe').textContent = '🪓 ' + (g.inv.hasAxe ? '✓' : '—');
   document.getElementById('invBandage').textContent = '💊 ' + (g.inv.hasBandage ? '✓' : '—');
-
   var cycle = g.dayDur + g.nightDur;
   var tIn = g.time % cycle;
   var isNight = tIn >= g.dayDur;
@@ -1220,30 +1702,24 @@ function updateHUD(){
   var left = isNight ? Math.ceil(cycle - tIn) : Math.ceil(g.dayDur - tIn);
   document.getElementById('timeLabel').textContent = label + ' · ' + left + 'с';
   document.getElementById('timeSub').textContent = 'Ночь ' + g.level + ' · ' + WEATHER_NAMES[g.weather];
-
   if (g.type === 'coop'){
-    var el = document.getElementById('coopCodeHud');
-    el.style.display = 'block';
+    var el = document.getElementById('coopCodeHud'); el.style.display = 'block';
     var conns = Object.keys(remotePlayers).length;
     var status = net.connected ? ' · '+conns+' ✅' : ' · ждём...';
-    el.textContent = 'КОД: ' + g.coopCode + status;
-    el.classList.toggle('ok', net.connected);
-  } else {
-    document.getElementById('coopCodeHud').style.display = 'none';
-  }
+    el.textContent = 'КОД: ' + g.coopCode + status; el.classList.toggle('ok', net.connected);
+  } else { document.getElementById('coopCodeHud').style.display = 'none'; }
 }
 
 /* ===== ЦИКЛ ===== */
 function loop(t){
   if (!game){ rafId = null; return; }
-  var dt = Math.min(0.05, (t - lastT) / 1000);
-  lastT = t;
+  var dt = Math.min(0.05, (t - lastT) / 1000); lastT = t;
   if (!game.paused && !game.respawning && currentScreen === 'gameScreen') update(dt);
   if (currentScreen === 'gameScreen'){ renderer.render(scene, camera); updateHUD(); }
   rafId = requestAnimationFrame(loop);
 }
 
-/* ===== ПК: клавиатура + pointer lock + мышь ===== */
+/* ===== ПК ===== */
 document.addEventListener('keydown', function(e){
   if (e.key === 'Escape'){
     if (currentScreen === 'gameScreen' && game && !game.paused){ pauseGame(); e.preventDefault(); }
@@ -1269,23 +1745,26 @@ document.addEventListener('keyup', function(e){
   if (e.key === 'Shift'){ keys.shift = false; return; }
   if (keyMap[e.key]) keys[keyMap[e.key]] = false;
 });
-
 document.addEventListener('click', function(e){
   if (currentScreen !== 'gameScreen' || !game || game.paused) return;
   if (isTouch) return;
-  if (e.target === canvas && !document.pointerLockElement){ if (canvas.requestPointerLock) canvas.requestPointerLock(); }
+  if (e.target === canvas && !document.pointerLockElement){
+    if (canvas.requestPointerLock) canvas.requestPointerLock();
+    ensureAudioReady();
+  }
 });
-document.addEventListener('pointerlockchange', function(){ updateClickHint(); });
+document.addEventListener('pointerlockchange', updateClickHint);
 
-// === МЫШЬ: ИСПРАВЛЕНО (инверсия по X, чтобы мышь вправо = смотреть вправо) ===
 document.addEventListener('mousemove', function(e){
   if (currentScreen !== 'gameScreen' || !game || game.paused) return;
   if (isTouch) return;
   if (document.pointerLockElement === canvas){
-    // При rotation.y = θ камера смотрит в (-sin θ, 0, -cos θ). Чтобы мышь вправо крутила вправо,
-    // camYaw должен уменьшаться.
-    camYaw -= e.movementX * MOUSE_SENSITIVITY;
-    camPitch -= e.movementY * MOUSE_SENSITIVITY;
+    var dx = e.movementX * getMouseSens();
+    var dy = e.movementY * getMouseSens();
+    if (SETTINGS.invertX) dx = -dx;
+    if (SETTINGS.invertY) dy = -dy;
+    camYaw -= dx;
+    camPitch -= dy;
     var limit = Math.PI/2 - 0.05;
     if (camPitch > limit) camPitch = limit;
     if (camPitch < -limit) camPitch = -limit;
@@ -1296,19 +1775,16 @@ document.addEventListener('mousemove', function(e){
 function setupTouch(){
   var joystick = document.getElementById('joystick');
   var stick = joystick.querySelector('.stick');
-  var jTouchId = null;
-  var jStart = { x:0, y:0 };
-  var jRadius = 60;
-  var DEAD_ZONE = 0.15;
-  function jStartHandler(e){
+  var jTouchId = null, jStart = { x:0, y:0 }, jRadius = 60, DEAD_ZONE = 0.15;
+  function jStartH(e){
     e.preventDefault(); if (jTouchId !== null) return;
     var t = e.changedTouches ? e.changedTouches[0] : e;
     jTouchId = t.identifier !== undefined ? t.identifier : 'mouse';
     var r = joystick.getBoundingClientRect();
     jStart.x = r.left + r.width/2; jStart.y = r.top + r.height/2;
-    jMoveHandler(e);
+    jMoveH(e);
   }
-  function jMoveHandler(e){
+  function jMoveH(e){
     if (jTouchId === null) return;
     var touch = null;
     if (e.changedTouches){ for (var i=0;i<e.changedTouches.length;i++){ if (e.changedTouches[i].identifier === jTouchId){ touch = e.changedTouches[i]; break; } } if (!touch) return; }
@@ -1322,18 +1798,17 @@ function setupTouch(){
     keys.a = nx < -DEAD_ZONE; keys.d = nx > DEAD_ZONE;
     keys.w = ny < -DEAD_ZONE; keys.s = ny > DEAD_ZONE;
   }
-  function jEndHandler(e){
-    if (e.changedTouches){ var found=false; for (var i=0;i<e.changedTouches.length;i++){ if (e.changedTouches[i].identifier === jTouchId){ found=true; break; } } if (!found) return; }
+  function jEndH(e){
+    if (e.changedTouches){ var f=false; for (var i=0;i<e.changedTouches.length;i++){ if (e.changedTouches[i].identifier === jTouchId){ f=true; break; } } if (!f) return; }
     jTouchId = null; stick.style.transform = '';
     keys.w = keys.a = keys.s = keys.d = false;
   }
-  joystick.addEventListener('touchstart', jStartHandler, { passive: false });
-  joystick.addEventListener('touchmove', jMoveHandler, { passive: false });
-  joystick.addEventListener('touchend', jEndHandler);
-  joystick.addEventListener('touchcancel', jEndHandler);
+  joystick.addEventListener('touchstart', jStartH, { passive: false });
+  joystick.addEventListener('touchmove', jMoveH, { passive: false });
+  joystick.addEventListener('touchend', jEndH);
+  joystick.addEventListener('touchcancel', jEndH);
 
-  var camTouchId = null;
-  var camLast = { x:0, y:0 };
+  var camTouchId = null, camLast = { x:0, y:0 };
   function isOnUI(target){ if (!target) return false; if (target.closest && (target.closest('.mob-btn') || target.closest('#joystick'))) return true; return false; }
   function camStart(e){
     if (!game || game.paused || currentScreen !== 'gameScreen') return;
@@ -1350,9 +1825,10 @@ function setupTouch(){
       if (t.identifier === camTouchId){
         var dx = t.clientX - camLast.x, dy = t.clientY - camLast.y;
         camLast.x = t.clientX; camLast.y = t.clientY;
-        // Свайп вправо = поворот вправо => camYaw -= dx
-        camYaw -= dx * TOUCH_SENSITIVITY;
-        camPitch -= dy * TOUCH_SENSITIVITY;
+        var sx = dx * getTouchSens(); var sy = dy * getTouchSens();
+        if (SETTINGS.invertX) sx = -sx;
+        if (SETTINGS.invertY) sy = -sy;
+        camYaw -= sx; camPitch -= sy;
         var limit = Math.PI/2 - 0.05;
         if (camPitch > limit) camPitch = limit;
         if (camPitch < -limit) camPitch = -limit;
@@ -1372,7 +1848,7 @@ function setupTouch(){
   function bindBtn(id, down, up){
     var el = document.getElementById(id); if (!el) return;
     var pressed = false;
-    function press(e){ if (pressed) return; pressed = true; el.classList.add('pressed'); if (e) e.preventDefault(); down(); }
+    function press(e){ if (pressed) return; pressed = true; el.classList.add('pressed'); if (e) e.preventDefault(); down(); ensureAudioReady(); }
     function release(e){ if (!pressed) return; pressed = false; el.classList.remove('pressed'); if (e) e.preventDefault(); if (up) up(); }
     el.addEventListener('touchstart', press, { passive: false });
     el.addEventListener('touchend', release, { passive: false });
@@ -1394,7 +1870,9 @@ function setupTouch(){
 /* ===== СТАРТ ===== */
 buildSlots(document.getElementById('singleSlots'), 'single');
 buildSlots(document.getElementById('coopSlots'), 'coop');
+bindSettingsUI();
 if (isTouch) setupTouch();
+if (SETTINGS.showFps){ var fEl = document.getElementById('hudFps'); if (fEl) fEl.style.display = 'block'; }
 setTimeout(function(){
   var s = document.getElementById('splash'); if (!s) return;
   s.classList.add('hide');
